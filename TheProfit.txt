@@ -9,5 +9,6 @@
 ## SavedVariables: TheProfitSavedVariables
 
 TheProfit.lua
+TheProfit_Margin.lua
 TheProfit_UI.xml
 Bindings.xml

@@ -71,7 +71,7 @@ local defaults = {
     windowLeft = 180,
     windowTop = 120,
     backgroundOpacity = 94,
-    personalSaleColor = { r = 0.91, g = 0.77, b = 0.42, a = 170 / 255 },
+    personalSaleColor = { r = 0.035, g = 0.095, b = 0.055, a = 0.78 },
     openWithMail = false,
     openWithStore = false,
     selectedItem = nil,
@@ -170,7 +170,7 @@ local strings = {
         backgroundOpacity = "Window background opacity",
         backgroundOpacityTooltip = "Controls how strongly the world behind The Profit is darkened. Changes apply immediately.",
         personalSaleColor = "Personal sale highlight",
-        personalSaleColorTooltip = "Color and opacity used to mark your own sales in Item. At 0% opacity, the row looks like a regular sale.",
+        personalSaleColorTooltip = "Color and opacity used to mark your own sales in Item, All Deals, and Stats.",
         settingsHeader = "Automatic display",
         openWithMail = "Open with mail",
         openWithMailTooltip = "Automatically show The Profit when opening the mailbox.",
@@ -276,7 +276,7 @@ local strings = {
         backgroundOpacity = "Непрозрачность фона окна",
         backgroundOpacityTooltip = "Определяет, насколько сильно затемняется мир за окном The Profit. Изменение применяется сразу.",
         personalSaleColor = "Подсветка личных продаж",
-        personalSaleColorTooltip = "Цвет и прозрачность подсветки ваших продаж в карточке предмета. При прозрачности 0% строка выглядит как обычная продажа.",
+        personalSaleColorTooltip = "Цвет и прозрачность подсветки ваших продаж в карточке предмета, All Deals и Stats.",
         settingsHeader = "Автоматическое открытие",
         openWithMail = "Открывать с почтой",
         openWithMailTooltip = "Автоматически показывать The Profit при открытии почтового ящика.",
@@ -1122,6 +1122,15 @@ end
 
 local function SetProfitColor(controlName, value)
     SetProfitControlColor(TP.window and TP.window:GetNamedChild(controlName), value)
+end
+
+local function SetPersonalSaleBackground(background, isPersonal)
+    if not background then return end
+    if isPersonal then
+        background:SetCenterColor(TP.GetPersonalSaleColor())
+    else
+        background:SetCenterColor(0.045, 0.049, 0.059, 0.72)
+    end
 end
 
 local function ColorizeProfitText(text, value)
@@ -1995,6 +2004,8 @@ local function GetWeeklyAnalytics()
             guildName = row.guildName,
             currentTurnover = showingMine and (row.currentMyTurnover or 0) or (row.currentTurnover or 0),
             previousTurnover = showingMine and (row.previousMyTurnover or 0) or (row.previousTurnover or 0),
+            currentMyTurnover = row.currentMyTurnover or 0,
+            previousMyTurnover = row.previousMyTurnover or 0,
         }
     end
     local sellerRows = snapshot.sellerRowsByPeriod[period] or {}
@@ -2572,12 +2583,16 @@ local function RefreshGuildHistoryUI()
     )
 
     local rows = view:GetNamedChild("Rows")
+    local playerDisplayName = NormalizeHistoryPlayer(GetDisplayName())
     for index = 1, GUILD_HISTORY_VISIBLE_ROWS do
         local row = rows:GetNamedChild("Row" .. index)
         local entry = entries[scrollOffset + index]
         row:SetHidden(entry == nil)
         row.itemLink = entry and entry.itemLink or nil
         if entry then
+            SetPersonalSaleBackground(
+                row:GetNamedChild("Background"),
+                entry.sellerNormalized ~= "" and entry.sellerNormalized == playerDisplayName)
             local itemIcon = row:GetNamedChild("Icon")
             local itemLabel = row:GetNamedChild("Item")
             local iconTexture = entry.itemLink and IsItemLink(entry.itemLink)
@@ -2650,9 +2665,12 @@ local function RefreshWeeklyAnalyticsUI()
     guildHeader:GetNamedChild("Previous"):SetText(TP.T("analyticsPrevious"))
     local guildContainer = view:GetNamedChild("GuildSummaryRows")
     local allCurrentTurnover, allPreviousTurnover = 0, 0
+    local allCurrentMyTurnover, allPreviousMyTurnover = 0, 0
     for _, entry in ipairs(guildRows) do
         allCurrentTurnover = allCurrentTurnover + (entry.currentTurnover or 0)
         allPreviousTurnover = allPreviousTurnover + (entry.previousTurnover or 0)
+        allCurrentMyTurnover = allCurrentMyTurnover + (entry.currentMyTurnover or 0)
+        allPreviousMyTurnover = allPreviousMyTurnover + (entry.previousMyTurnover or 0)
     end
     local displayedGuildRows = {
         {
@@ -2660,6 +2678,8 @@ local function RefreshWeeklyAnalyticsUI()
             isAll = true,
             currentTurnover = showingMine and allCurrentTurnover or nil,
             previousTurnover = showingMine and allPreviousTurnover or nil,
+            currentMyTurnover = allCurrentMyTurnover,
+            previousMyTurnover = allPreviousMyTurnover,
         },
     }
     for _, entry in ipairs(guildRows) do displayedGuildRows[#displayedGuildRows + 1] = entry end
@@ -2678,11 +2698,17 @@ local function RefreshWeeklyAnalyticsUI()
             row:GetNamedChild("Previous"):SetText(entry.previousTurnover ~= nil
                 and ZO_CommaDelimitNumber(math.floor(entry.previousTurnover + 0.5)) or "")
             row:GetNamedChild("Selected"):SetHidden(not isSelected)
-            row:GetNamedChild("Background"):SetCenterColor(
-                isSelected and 0.10 or 0.045,
-                isSelected and 0.085 or 0.049,
-                isSelected and 0.04 or 0.059,
-                isSelected and 0.82 or 0.72)
+            local hasPersonalSales = not showingMine and ((showingCurrent
+                and entry.currentMyTurnover or entry.previousMyTurnover) or 0) > 0
+            if hasPersonalSales then
+                SetPersonalSaleBackground(row:GetNamedChild("Background"), true)
+            else
+                row:GetNamedChild("Background"):SetCenterColor(
+                    isSelected and 0.10 or 0.045,
+                    isSelected and 0.085 or 0.049,
+                    isSelected and 0.04 or 0.059,
+                    isSelected and 0.82 or 0.72)
+            end
         end
     end
 
@@ -2712,12 +2738,7 @@ local function RefreshWeeklyAnalyticsUI()
         if entry then
             local isPlayer = entry.isPlayer == true
                 or NormalizeHistoryPlayer(entry.seller) == playerDisplayName
-            local background = row:GetNamedChild("Background")
-            background:SetCenterColor(
-                isPlayer and 0.035 or 0.045,
-                isPlayer and 0.095 or 0.049,
-                isPlayer and 0.055 or 0.059,
-                isPlayer and 0.78 or 0.72)
+            SetPersonalSaleBackground(row:GetNamedChild("Background"), isPlayer)
             row:GetNamedChild("Seller"):SetText(entry.seller)
             row:GetNamedChild("Guild"):SetText(entry.guildName)
             row:GetNamedChild("Sales"):SetText(ZO_CommaDelimitNumber(math.floor(entry.sales + 0.5)))
@@ -2935,16 +2956,11 @@ local function RefreshMarketSaleRow(row, entry)
     local personalMarker = row:GetNamedChild("PersonalMarker")
     if entry.isPersonal then
         local r, g, b, a = TP.GetPersonalSaleColor()
-        local targetR, targetG, targetB = r * 0.22, g * 0.22, b * 0.22
-        background:SetCenterColor(
-            0.045 + (targetR - 0.045) * a,
-            0.049 + (targetG - 0.049) * a,
-            0.059 + (targetB - 0.059) * a,
-            0.72 + (0.88 - 0.72) * a)
+        SetPersonalSaleBackground(background, true)
         personalMarker:SetCenterColor(r, g, b, a)
         personalMarker:SetHidden(false)
     else
-        background:SetCenterColor(0.045, 0.049, 0.059, 0.72)
+        SetPersonalSaleBackground(background, false)
         personalMarker:SetHidden(true)
     end
     row:GetNamedChild("Guild"):SetText(entry.guildName)
