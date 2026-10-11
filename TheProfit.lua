@@ -4,7 +4,7 @@ local TP = TheProfit
 local EM = EVENT_MANAGER
 
 TP.name = "TheProfit"
-TP.version = "1.0.0"
+TP.version = "1.0.1"
 TP.processors = {}
 TP.currentPurchaseKey = nil
 TP.purchaseCandidate = nil
