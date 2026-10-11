@@ -75,6 +75,7 @@ local defaults = {
     openWithMail = false,
     openWithStore = false,
     showSimpleFilterInAGS = true,
+    agsFilterType = "simple",
     selectedItem = nil,
     trackedItems = {},
     trackedItemOrder = {},
@@ -177,8 +178,10 @@ local strings = {
         openWithMailTooltip = "Automatically show The Profit when opening the mailbox.",
         openWithStore = "Open with guild store",
         openWithStoreTooltip = "Automatically show The Profit when entering a guild store.",
-        showSimpleFilterInAGS = "Show Simple Filter in AGS",
-        showSimpleFilterInAGSTooltip = "Adds the naive filter to AwesomeGuildStore: the discount from the TTC suggested price, shown as a percentage and split into gray, green, blue, purple and gold. Requires TTC. Changing this reloads the UI.",
+        showSimpleFilterInAGS = "Show Filter in AGS",
+        agsFilterType = "AGS filter type",
+        agsFilterTypeTooltip = "Which filter to show in AwesomeGuildStore. Changing this reloads the UI.",
+        showSimpleFilterInAGSTooltip = "Adds the simple filter to AwesomeGuildStore: the discount from the TTC suggested price, shown as a percentage and split into gray, green, blue, purple and gold. Requires TTC. Changing this reloads the UI.",
         guild = "GUILD",
         selected = "Now tracking %s",
         help1 = "The Profit commands:",
@@ -285,8 +288,10 @@ local strings = {
         openWithMailTooltip = "Автоматически показывать The Profit при открытии почтового ящика.",
         openWithStore = "Открывать с гильдейским магазином",
         openWithStoreTooltip = "Автоматически показывать The Profit при входе в гильдейский магазин.",
-        showSimpleFilterInAGS = "Show Simple Filter in AGS",
-        showSimpleFilterInAGSTooltip = "Добавляет в AwesomeGuildStore наивный фильтр: скидка от рекомендованной цены TTC в процентах, разбитая на серый, зелёный, синий, фиолетовый и золотой. Нужен TTC. Изменение перезагружает интерфейс.",
+        showSimpleFilterInAGS = "Показывать фильтр в AGS",
+        agsFilterType = "Тип фильтра AGS",
+        agsFilterTypeTooltip = "Какой фильтр показывать в AwesomeGuildStore. Изменение перезагружает интерфейс.",
+        showSimpleFilterInAGSTooltip = "Добавляет в AwesomeGuildStore простой фильтр: скидка от рекомендованной цены TTC в процентах, разбитая на серый, зелёный, синий, фиолетовый и золотой. Нужен TTC. Изменение перезагружает интерфейс.",
         guild = "ГИЛЬДИЯ",
         selected = "Теперь отслеживается %s",
         help1 = "Команды The Profit:",
@@ -3181,6 +3186,12 @@ function TP.SetupSettings()
         registerForDefaults = true,
     })
 
+    local filterTypeNames, filterTypeValues = {}, {}
+    for _, filterType in ipairs(TP.agsFilterTypes or {}) do
+        filterTypeNames[#filterTypeNames + 1] = filterType.name
+        filterTypeValues[#filterTypeValues + 1] = filterType.value
+    end
+
     LAM:RegisterOptionControls(panelName, {
         {
             type = "header",
@@ -3252,6 +3263,18 @@ function TP.SetupSettings()
             setFunc = function(value) TP.SV.showSimpleFilterInAGS = value end,
             requiresReload = true,
             default = defaults.showSimpleFilterInAGS,
+        },
+        {
+            type = "dropdown",
+            name = TP.T("agsFilterType"),
+            tooltip = TP.T("agsFilterTypeTooltip"),
+            choices = filterTypeNames,
+            choicesValues = filterTypeValues,
+            getFunc = function() return TP.GetAGSFilterType() end,
+            setFunc = function(value) TP.SV.agsFilterType = value end,
+            disabled = function() return TP.SV.showSimpleFilterInAGS ~= true or #filterTypeValues < 2 end,
+            requiresReload = true,
+            default = defaults.agsFilterType,
         },
     })
 end

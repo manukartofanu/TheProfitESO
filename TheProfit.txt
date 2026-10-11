@@ -10,6 +10,7 @@
 
 TheProfit.lua
 TheProfit_Margin.lua
-TheProfit_AGS.lua
+AGS_Integration/Filter.lua
+AGS_Integration/FilterProficient.lua
 TheProfit_UI.xml
 Bindings.xml

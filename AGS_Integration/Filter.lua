@@ -1,5 +1,6 @@
 local TP = TheProfit
 
+-- Each filter type has its own id, so a state AGS saved for one type is never read by another.
 local FILTER_ID = 210
 local REQUIRED_AGS_API_VERSION = 4
 local SEARCH_RESULTS_DATA_TYPE = 1
@@ -30,31 +31,35 @@ local GRAY_COLOR = { 0.65, 0.65, 0.65, 1 }
 -- nested tables, and AGS asks for every listing of every search, again on each
 -- filter change and row refresh. The suggested price only changes when TTC
 -- reloads its price table, so it is cached per link until the store is opened
--- again. false marks a link without a usable price.
-local suggestedPriceCache = {}
-local suggestedPriceCount = 0
+-- again. false marks a link without TTC data.
+local priceInfoCache = {}
+local priceInfoCount = 0
 
 local function ClearPriceCache()
-    suggestedPriceCache = {}
-    suggestedPriceCount = 0
+    priceInfoCache = {}
+    priceInfoCount = 0
+end
+
+local function GetPriceInfo(itemLink)
+    local cached = priceInfoCache[itemLink]
+    if cached ~= nil then return cached or nil end
+
+    local info = TamrielTradeCentrePrice and TamrielTradeCentrePrice:GetPriceInfo(itemLink) or false
+
+    if priceInfoCount >= MAX_CACHED_PRICES then ClearPriceCache() end
+    priceInfoCache[itemLink] = info
+    priceInfoCount = priceInfoCount + 1
+    return info or nil
 end
 
 local function GetSuggestedPrice(itemLink)
-    local cached = suggestedPriceCache[itemLink]
-    if cached ~= nil then return cached or nil end
-
-    local price = false
-    local info = TamrielTradeCentrePrice and TamrielTradeCentrePrice:GetPriceInfo(itemLink)
+    local info = GetPriceInfo(itemLink)
     local suggested = info and tonumber(info.SuggestedPrice)
-    if suggested and suggested > 0 then price = suggested end
-
-    if suggestedPriceCount >= MAX_CACHED_PRICES then ClearPriceCache() end
-    suggestedPriceCache[itemLink] = price
-    suggestedPriceCount = suggestedPriceCount + 1
-    return price or nil
+    if suggested and suggested > 0 then return suggested end
+    return nil
 end
 
--- Shared with the button variant of the filter.
+-- Shared with the button type of the filter.
 TP.SimpleMargin = {}
 
 -- Returns category and discount percent, or nil when there is nothing to compare with.
@@ -82,6 +87,7 @@ local function GetCategoryColor(category)
 end
 
 TP.SimpleMargin.Evaluate = Evaluate
+TP.SimpleMargin.GetPriceInfo = GetPriceInfo
 TP.SimpleMargin.GetCategoryColor = GetCategoryColor
 TP.SimpleMargin.CATEGORY_ORDER = CATEGORY_ORDER
 TP.SimpleMargin.CATEGORY_LABELS = CATEGORY_LABELS
@@ -108,13 +114,14 @@ local function UpdateTextControl(rowControl, itemData)
     local text = rowControl.theProfitSimple or CreateTextControl(rowControl)
     if not text then return end
 
-    local category, percent = Evaluate(itemData)
+    -- Looked up on each call: the Proficient type replaces the evaluation.
+    local category, percent = TP.SimpleMargin.Evaluate(itemData)
     if not category then
         text:SetHidden(true)
         return
     end
 
-    text:SetText(string.format("%d%%", zo_round(percent)))
+    text:SetText(percent and string.format("%d%%", zo_round(percent)) or "BUY")
     text:SetColor(GetCategoryColor(category))
     text:SetHidden(false)
 end
@@ -208,8 +215,19 @@ local function RegisterFilter(AGS)
     TP.agsFilter = filter
 end
 
--- AGS cannot drop a registered filter, so the setting is read once at load and
--- a change needs a UI reload.
+-- Filter types offered by the settings dropdown; other files append their own.
+TP.agsFilterTypes = { { value = "simple", name = "Simple" } }
+
+function TP.GetAGSFilterType()
+    local selected = TP.SV and TP.SV.agsFilterType
+    for _, filterType in ipairs(TP.agsFilterTypes) do
+        if filterType.value == selected then return selected end
+    end
+    return "simple"
+end
+
+-- AGS cannot drop a registered filter, so the settings are read once at load and
+-- a change needs a UI reload. The row text is shared by all types.
 function TP.SetupAGSFilter()
     if not TP.SV or TP.SV.showSimpleFilterInAGS ~= true then return end
     if TP.agsCallbackRegistered then return end
@@ -220,9 +238,11 @@ function TP.SetupAGSFilter()
     if not IsKeyboardUISupported() or not TamrielTradeCentrePrice then return end
 
     TP.agsCallbackRegistered = true
-    AGS:RegisterCallback(AGS.callback.AFTER_FILTER_SETUP, function()
-        RegisterFilter(AGS)
-    end)
+    if TP.GetAGSFilterType() == "simple" then
+        AGS:RegisterCallback(AGS.callback.AFTER_FILTER_SETUP, function()
+            RegisterFilter(AGS)
+        end)
+    end
     AGS:RegisterCallback(AGS.callback.AFTER_INITIAL_SETUP, RegisterResultRowRenderer)
     EVENT_MANAGER:RegisterForEvent(TP.name .. "AGSPrices", EVENT_OPEN_TRADING_HOUSE, ClearPriceCache)
 end
