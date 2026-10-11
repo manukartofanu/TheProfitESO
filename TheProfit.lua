@@ -74,6 +74,7 @@ local defaults = {
     personalSaleColor = { r = 0.035, g = 0.095, b = 0.055, a = 0.78 },
     openWithMail = false,
     openWithStore = false,
+    showSimpleFilterInAGS = true,
     selectedItem = nil,
     trackedItems = {},
     trackedItemOrder = {},
@@ -176,6 +177,8 @@ local strings = {
         openWithMailTooltip = "Automatically show The Profit when opening the mailbox.",
         openWithStore = "Open with guild store",
         openWithStoreTooltip = "Automatically show The Profit when entering a guild store.",
+        showSimpleFilterInAGS = "Show Simple Filter in AGS",
+        showSimpleFilterInAGSTooltip = "Adds the naive filter to AwesomeGuildStore: the discount from the TTC suggested price, shown as a percentage and split into gray, green, blue, purple and gold. Requires TTC. Changing this reloads the UI.",
         guild = "GUILD",
         selected = "Now tracking %s",
         help1 = "The Profit commands:",
@@ -282,6 +285,8 @@ local strings = {
         openWithMailTooltip = "Автоматически показывать The Profit при открытии почтового ящика.",
         openWithStore = "Открывать с гильдейским магазином",
         openWithStoreTooltip = "Автоматически показывать The Profit при входе в гильдейский магазин.",
+        showSimpleFilterInAGS = "Show Simple Filter in AGS",
+        showSimpleFilterInAGSTooltip = "Добавляет в AwesomeGuildStore наивный фильтр: скидка от рекомендованной цены TTC в процентах, разбитая на серый, зелёный, синий, фиолетовый и золотой. Нужен TTC. Изменение перезагружает интерфейс.",
         guild = "ГИЛЬДИЯ",
         selected = "Теперь отслеживается %s",
         help1 = "Команды The Profit:",
@@ -3239,6 +3244,15 @@ function TP.SetupSettings()
             end,
             default = defaults.openWithStore,
         },
+        {
+            type = "checkbox",
+            name = TP.T("showSimpleFilterInAGS"),
+            tooltip = TP.T("showSimpleFilterInAGSTooltip"),
+            getFunc = function() return TP.SV.showSimpleFilterInAGS == true end,
+            setFunc = function(value) TP.SV.showSimpleFilterInAGS = value end,
+            requiresReload = true,
+            default = defaults.showSimpleFilterInAGS,
+        },
     })
 end
 
@@ -4357,6 +4371,7 @@ local function OnAddOnLoaded(_, addonName)
     InitializeWindowPosition()
     TP.ApplyAppearanceSettings()
     TP.SetupSettings()
+    TP.SetupAGSFilter()
     TP.ApplySceneSettings()
     TP.SetupPurchaseTracking()
     TP.SetupListingTracking()

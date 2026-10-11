@@ -5,10 +5,11 @@
 ## Version: 1.0.0
 ## AddOnVersion: 10000
 ## DependsOn: LibHistoire>=1103 LibAsync LibCustomMenu>=730 LibAddonMenu-2.0>=43
-## OptionalDependsOn: AwesomeGuildStore>=3282
+## OptionalDependsOn: AwesomeGuildStore>=3282 TamrielTradeCentre
 ## SavedVariables: TheProfitSavedVariables
 
 TheProfit.lua
 TheProfit_Margin.lua
+TheProfit_AGS.lua
 TheProfit_UI.xml
 Bindings.xml
