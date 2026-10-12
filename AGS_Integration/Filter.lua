@@ -40,11 +40,35 @@ local function ClearPriceCache()
     priceInfoCount = 0
 end
 
+-- TTC itself calls its table outdated after three days. The timestamp covers the
+-- whole table, so it is read when the store opens instead of per link. A stale
+-- table counts as no TTC data: rows stay empty and filter as gray.
+local STALE_AFTER_SECONDS = 3 * (ZO_ONE_DAY_IN_SECONDS or 86400)
+local priceTableStale = nil
+local staleWarningShown = false
+
+local function IsPriceTableStale()
+    local priceTable = TamrielTradeCentrePrice and TamrielTradeCentrePrice.PriceTable
+    local timeStamp = priceTable and tonumber(priceTable.TimeStamp)
+    return timeStamp ~= nil and GetTimeStamp() - timeStamp > STALE_AFTER_SECONDS
+end
+
+local function OnStoreOpened()
+    ClearPriceCache()
+    priceTableStale = IsPriceTableStale()
+    if priceTableStale and not staleWarningShown then
+        staleWarningShown = true
+        d("|cE7C56AThe Profit:|r " .. TP.T("ttcPriceTableStale"))
+    end
+end
+
 local function GetPriceInfo(itemLink)
     local cached = priceInfoCache[itemLink]
     if cached ~= nil then return cached or nil end
 
-    local info = TamrielTradeCentrePrice and TamrielTradeCentrePrice:GetPriceInfo(itemLink) or false
+    if priceTableStale == nil then priceTableStale = IsPriceTableStale() end
+    local info = not priceTableStale and TamrielTradeCentrePrice
+        and TamrielTradeCentrePrice:GetPriceInfo(itemLink) or false
 
     if priceInfoCount >= MAX_CACHED_PRICES then ClearPriceCache() end
     priceInfoCache[itemLink] = info
@@ -244,5 +268,5 @@ function TP.SetupAGSFilter()
         end)
     end
     AGS:RegisterCallback(AGS.callback.AFTER_INITIAL_SETUP, RegisterResultRowRenderer)
-    EVENT_MANAGER:RegisterForEvent(TP.name .. "AGSPrices", EVENT_OPEN_TRADING_HOUSE, ClearPriceCache)
+    EVENT_MANAGER:RegisterForEvent(TP.name .. "AGSPrices", EVENT_OPEN_TRADING_HOUSE, OnStoreOpened)
 end
