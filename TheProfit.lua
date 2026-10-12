@@ -59,6 +59,9 @@ local SUMMARY_CACHE_TTL = 60
 local ANALYTICS_REFRESH_COOLDOWN_MS = 60 * 1000
 local GUILD_HISTORY_REFRESH_COOLDOWN_MS = 60 * 1000
 local SALES_SYNC_OVERLAP_SECONDS = 5 * 60
+TP.AGS_HINT_FONT_SIZE_MIN = 10
+TP.AGS_HINT_FONT_SIZE_MAX = 24
+TP.AGS_HINT_FONT_SIZE_DEFAULT = 16
 local analyticsLoadGeneration = 0
 local analyticsProcessorsPending = {}
 local analyticsProcessorSetupInProgress = false
@@ -76,6 +79,7 @@ local defaults = {
     openWithStore = false,
     showSimpleFilterInAGS = true,
     agsFilterType = "simple",
+    agsHintFontSize = TP.AGS_HINT_FONT_SIZE_DEFAULT,
     selectedItem = nil,
     trackedItems = {},
     trackedItemOrder = {},
@@ -181,6 +185,8 @@ local strings = {
         showSimpleFilterInAGS = "Show Filter in AGS",
         agsFilterType = "AGS filter type",
         agsFilterTypeTooltip = "Which filter to show in AwesomeGuildStore. Changing this reloads the UI.",
+        agsHintFontSize = "AGS hint font size",
+        agsHintFontSizeTooltip = "Size of The Profit's colored percentage or BUY hint in AwesomeGuildStore result rows.",
         showSimpleFilterInAGSTooltip = "Adds the simple filter to AwesomeGuildStore: the discount from the TTC suggested price, shown as a percentage and split into gray, green, blue, purple and gold. Requires TTC. Changing this reloads the UI.",
         guild = "GUILD",
         selected = "Now tracking %s",
@@ -292,6 +298,8 @@ local strings = {
         showSimpleFilterInAGS = "Показывать фильтр в AGS",
         agsFilterType = "Тип фильтра AGS",
         agsFilterTypeTooltip = "Какой фильтр показывать в AwesomeGuildStore. Изменение перезагружает интерфейс.",
+        agsHintFontSize = "Размер шрифта подсказки в AGS",
+        agsHintFontSizeTooltip = "Размер цветного процента или надписи BUY от The Profit в строках результатов AwesomeGuildStore.",
         showSimpleFilterInAGSTooltip = "Добавляет в AwesomeGuildStore простой фильтр: скидка от рекомендованной цены TTC в процентах, разбитая на серый, зелёный, синий, фиолетовый и золотой. Нужен TTC. Изменение перезагружает интерфейс.",
         guild = "ГИЛЬДИЯ",
         selected = "Теперь отслеживается %s",
@@ -3277,6 +3285,24 @@ function TP.SetupSettings()
             disabled = function() return TP.SV.showSimpleFilterInAGS ~= true or #filterTypeValues < 2 end,
             requiresReload = true,
             default = defaults.agsFilterType,
+        },
+        {
+            type = "slider",
+            name = TP.T("agsHintFontSize"),
+            tooltip = TP.T("agsHintFontSizeTooltip"),
+            min = TP.AGS_HINT_FONT_SIZE_MIN,
+            max = TP.AGS_HINT_FONT_SIZE_MAX,
+            step = 1,
+            decimals = 0,
+            clampInput = true,
+            getFunc = function()
+                return tonumber(TP.SV.agsHintFontSize) or defaults.agsHintFontSize
+            end,
+            setFunc = function(value)
+                TP.SV.agsHintFontSize = zo_round(value)
+            end,
+            disabled = function() return TP.SV.showSimpleFilterInAGS ~= true end,
+            default = defaults.agsHintFontSize,
         },
     })
 end

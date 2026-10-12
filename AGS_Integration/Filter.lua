@@ -9,6 +9,12 @@ local TEXT_WIDTH = 50
 local TEXT_OFFSET_X = 55
 local MAX_CACHED_PRICES = 20000
 
+local function GetHintFont()
+    local size = tonumber(TP.SV and TP.SV.agsHintFontSize) or TP.AGS_HINT_FONT_SIZE_DEFAULT
+    size = zo_round(math.max(TP.AGS_HINT_FONT_SIZE_MIN, math.min(TP.AGS_HINT_FONT_SIZE_MAX, size)))
+    return string.format("$(BOLD_FONT)|%d|soft-shadow-thin", size)
+end
+
 -- Category ids double as the stored filter values, so they must stay stable.
 local GRAY, GREEN, BLUE, PURPLE, GOLD = 0, 1, 2, 3, 4
 local CATEGORY_ORDER = { GRAY, GREEN, BLUE, PURPLE, GOLD }
@@ -125,7 +131,6 @@ local function CreateTextControl(rowControl)
     -- a fixed offset from it gives every row the same column, whatever the price.
     local text = rowControl:CreateControl(rowControl:GetName() .. "TheProfitSimple", CT_LABEL)
     text:SetDimensions(TEXT_WIDTH, timeControl:GetHeight())
-    text:SetFont(timeControl:GetFont())
     text:SetHorizontalAlignment(TEXT_ALIGN_LEFT)
     text:SetVerticalAlignment(TEXT_ALIGN_CENTER)
     text:SetMaxLineCount(1)
@@ -137,6 +142,7 @@ end
 local function UpdateTextControl(rowControl, itemData)
     local text = rowControl.theProfitSimple or CreateTextControl(rowControl)
     if not text then return end
+    text:SetFont(GetHintFont())
 
     -- Looked up on each call: the Proficient type replaces the evaluation.
     local category, percent = TP.SimpleMargin.Evaluate(itemData)
