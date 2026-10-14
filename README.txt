@@ -106,15 +106,17 @@ deviation.
 
 General market history is not duplicated in SavedVariables. LibHistoire remains
 the persistent source; The Profit builds only a seven-day session cache for the
-guilds selected as trading guilds. Personal sales from every guild remain stored
-because My Deals and the ledger need them across sessions.
+guilds selected as trading guilds. Personal sales discovered in those selected
+guilds remain stored because My Deals and the ledger need them across sessions.
 
 The Profit does not start its sales processors during addon loading or after an
 arbitrary startup delay. It registers lightweight interest in the trader
 category, waits for LibHistoire to start its own requests, and begins reading
-sales only when LibHistoire's guild status is green: all active categories are
-linked, no request is pending, and internal event processing has finished. The
-completed sync time is saved per guild, so later sessions only process the
+sales only when LibHistoire's status is green for every selected trading guild:
+all active categories are linked, no request is pending, and internal event
+processing has finished. Unselected guilds neither block startup nor receive a
+sales processor. The completed sync time is saved per guild, so later sessions
+only process the
 previous trading week and events received since the last successful sync. Full
 selected-guild history is loaded lazily when All Deals is first opened. If
 LibHistoire loses a managed range, The Profit restarts that guild's processor
