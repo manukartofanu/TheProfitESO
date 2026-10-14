@@ -26,6 +26,9 @@ The following libraries and addons must be installed and enabled:
 AwesomeGuildStore is optional. When it is installed, The Profit can add a margin
 filter and deal indicators to its search results.
 
+LibGroupBroadcast is optional. It enables private sharing of tracked items and
+matching guild-store deals with other group members who also use The Profit.
+
 Usage
 -----
 
@@ -65,6 +68,27 @@ when the TTC price has enough supporting sales, and marks a tracked item as BUY
 when The Profit's market model considers it ready to purchase. That model uses
 recent LibHistoire sales, liquidity, current tracked stock, price trend, and
 volatility. Listings without enough data remain in Other.
+
+Group deal sharing
+------------------
+
+Group sharing is disabled by default. Install LibGroupBroadcast, then enable
+"Share tracked items with group" under Settings > Addons > The Profit > Group.
+Group members running The Profit exchange the identities of their tracked items
+and the highest unit prices their market models currently consider safe buys.
+
+When AwesomeGuildStore receives search results, The Profit checks only those
+results for lots wanted by another active group member. It never starts guild-
+store searches itself. Matching deals are sent when the store is closed, except
+for lots bought by the reporting player. The recipient evaluates the complete
+stack with their own current model before accepting and displaying the report.
+
+Accepted reports appear as a temporary HUD alert. An optional Group deals window
+can also be shown beside ESO's group window. Reports expire after thirty minutes,
+or one minute after the recipient visits the reported guild store. Alert color,
+size, locking, preview, and both window positions are available in the Group
+settings. `/theprofit group` prints the current sharing and peer state for
+diagnostics.
 
 Active listings are captured when an item is posted, but are saved only after
 ESO confirms the request. Whenever the current guild's listing page is loaded,
