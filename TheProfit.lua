@@ -110,6 +110,7 @@ local strings = {
         menuSelect = "Select in The Profit",
         menuOpen = "Open The Profit",
         menuShowPrice = "Show Price",
+        menuShowGuildSales = "Show Sales in My Guilds",
         projectedProfit = "PROJECTED ITEM PROFIT",
         returnRate = "ROI",
         forecastPrice = "FORECAST PRICE",
@@ -223,6 +224,7 @@ local strings = {
         menuSelect = "Выбрать в The Profit",
         menuOpen = "Открыть The Profit",
         menuShowPrice = "Показать цену",
+        menuShowGuildSales = "Показать продажи в моих гильдиях",
         projectedProfit = "ПРОГНОЗНАЯ ПРИБЫЛЬ ПРЕДМЕТА",
         returnRate = "ROI",
         forecastPrice = "РАСЧЁТНАЯ ЦЕНА",
@@ -4331,10 +4333,11 @@ end
 local function AddTrackMenuItem(itemLink)
     if not IsItemLink(itemLink) then return end
     local itemKey = TP.GetItemKey(itemLink)
+    local isTracked = IsTrackedKey(itemKey)
     local label
     if MatchesSelectedItem(itemLink) then
         label = TP.T("menuOpen")
-    elseif IsTrackedKey(itemKey) then
+    elseif isTracked then
         label = TP.T("menuSelect")
     else
         label = TP.T("menuTrack")
@@ -4344,6 +4347,36 @@ local function AddTrackMenuItem(itemLink)
         TP.SetView("item")
         if TP.window then TP.window:SetHidden(false) end
     end)
+
+    if not isTracked then
+        AddCustomMenuItem(TP.T("menuShowGuildSales"), function()
+            local itemName = zo_strformat(SI_TOOLTIP_ITEM_NAME, GetItemLinkName(itemLink))
+            if not itemName or itemName == "" then return end
+
+            TP.guildHistoryGuildId = nil
+            TP.guildHistoryItemQuery = itemName
+            TP.guildHistorySellerQuery = ""
+            TP.guildHistoryBuyerQuery = ""
+            TP.guildHistoryScrollOffset = 0
+            TP.guildHistoryFiltersDirty = true
+
+            if TP.window then
+                local textFilters = {
+                    GuildHistoryViewTopFiltersItemSearchBox = itemName,
+                    GuildHistoryViewPlayerFiltersSellerSearchBox = "",
+                    GuildHistoryViewPlayerFiltersBuyerSearchBox = "",
+                }
+                for controlName, value in pairs(textFilters) do
+                    local control = TP.window:GetNamedChild(controlName)
+                    if control then control:SetText(value) end
+                end
+            end
+
+            TP.SetView("guildHistory")
+            if TP.window then TP.window:SetHidden(false) end
+            TP.RefreshUI()
+        end)
+    end
 end
 
 function TP.SetupContextMenus()

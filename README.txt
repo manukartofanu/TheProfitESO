@@ -33,6 +33,8 @@ Usage
 -----
 
 * Right-click an item or item link and choose "Track in The Profit".
+* For an untracked item, choose "Show Sales in My Guilds" to open All Deals
+  filtered by that item's name without adding it to the portfolio.
 * Use /theprofit to open or close the ledger.
 * Track up to ten items and switch the active item by clicking its table row.
 * The add-on settings can open the ledger automatically with mail or guild stores.
