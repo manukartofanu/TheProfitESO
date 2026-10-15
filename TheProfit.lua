@@ -4,7 +4,7 @@ local TP = TheProfit
 local EM = EVENT_MANAGER
 
 TP.name = "TheProfit"
-TP.version = "1.1.0"
+TP.version = "1.1.1"
 -- Events for optional modules: TrackedItemAdded(itemKey), TrackedItemRemoved(itemKey),
 -- MarketDataLoaded().
 TP.callbacks = ZO_CallbackObject:New()
