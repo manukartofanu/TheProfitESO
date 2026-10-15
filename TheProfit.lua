@@ -148,7 +148,7 @@ local strings = {
         historyRefresh = "Refresh",
         historyWaitingForLibHistoire = "Guild history is not ready yet. Waiting for LibHistoire…",
         historyLoading = "Loading guild history…",
-        historyEmpty = "No guild-trade events match these filters.",
+        historyEmpty = "No sales of this item were found in your guilds.",
         analyticsCurrentWeek = "Current week",
         analyticsPreviousWeek = "Previous week",
         analyticsMy = "My",
@@ -262,7 +262,7 @@ local strings = {
         historyRefresh = "Обновить",
         historyWaitingForLibHistoire = "История ещё не готова. Ожидаем LibHistoire…",
         historyLoading = "Загрузка истории гильдий…",
-        historyEmpty = "Нет событий гильдейской торговли по выбранным фильтрам.",
+        historyEmpty = "Продаж этого предмета из ваших гильдий не найдено",
         analyticsCurrentWeek = "Текущая неделя",
         analyticsPreviousWeek = "Прошлая неделя",
         analyticsMy = "Мои",
@@ -2647,8 +2647,12 @@ local function RefreshGuildHistoryUI()
     if not historyReady then
         empty:SetText(TP.T(TP.historyLoadingStarted
             and "historyLoading" or "historyWaitingForLibHistoire"))
+        empty:SetFont("ZoFontGame")
+        empty:SetColor(0.47, 0.49, 0.53, 1)
     else
         empty:SetText(TP.T("historyEmpty"))
+        empty:SetFont("ZoFontGameBold")
+        empty:SetColor(0.95, 0.45, 0.42, 1)
     end
     empty:SetHidden(historyReady and #entries > 0)
 end
