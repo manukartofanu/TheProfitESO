@@ -4341,6 +4341,7 @@ local function AddTrackMenuItem(itemLink)
     end
     AddCustomMenuItem(label, function()
         if not MatchesSelectedItem(itemLink) then TP.SetTrackedItem(itemLink) end
+        TP.SetView("item")
         if TP.window then TP.window:SetHidden(false) end
     end)
 end
