@@ -4,7 +4,21 @@ local TP = TheProfit
 local EM = EVENT_MANAGER
 
 TP.name = "TheProfit"
-TP.version = "1.1.1"
+
+-- The version comes from the manifest's AddOnVersion (10102 -> "1.1.2"), so a release
+-- only changes the manifest.
+local function GetManifestVersion()
+    local manager = GetAddOnManager()
+    for index = 1, manager:GetNumAddOns() do
+        if manager:GetAddOnInfo(index) == TP.name then
+            local version = manager:GetAddOnVersion(index)
+            return string.format("%d.%d.%d", math.floor(version / 10000), math.floor(version / 100) % 100, version % 100)
+        end
+    end
+    return "?"
+end
+
+TP.version = GetManifestVersion()
 -- Events for optional modules: TrackedItemAdded(itemKey), TrackedItemRemoved(itemKey),
 -- MarketDataLoaded().
 TP.callbacks = ZO_CallbackObject:New()
