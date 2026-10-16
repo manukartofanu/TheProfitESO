@@ -57,7 +57,7 @@ local GUILD_HISTORY_VISIBLE_ROWS = 14
 local WEEKLY_ANALYTICS_VISIBLE_ROWS = 7
 local STOCK_ITEM_VISIBLE_ROWS = 10
 local STOCK_LISTING_VISIBLE_ROWS = 7
-local ITEM_SALES_VISIBLE_ROWS = 11
+local ITEM_SALES_VISIBLE_ROWS = 10
 local SUMMARY_CACHE_TTL = 60
 local ANALYTICS_REFRESH_COOLDOWN_MS = 60 * 1000
 local GUILD_HISTORY_REFRESH_COOLDOWN_MS = 60 * 1000
@@ -3018,6 +3018,11 @@ local function RefreshItemUI(selected)
             tab:GetNamedChild("Active"):SetHidden(not isSelected)
         end
     end
+
+    local forecast = view:GetNamedChild("Forecast")
+    local market = CalculateMarketAnalytics(GetSelectedKey())
+    forecast:GetNamedChild("Label"):SetText(TP.T("forecastPrice"))
+    forecast:GetNamedChild("Value"):SetText(market.available and FormatPlainGold(market.forecastUnitPrice) or "—")
 
     local header = view:GetNamedChild("Header")
     header:GetNamedChild("Guild"):SetText(TP.T("recentGuild"))

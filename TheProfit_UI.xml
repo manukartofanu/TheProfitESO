@@ -892,10 +892,21 @@
                                 <Button name="$(parent)Tab6" inherits="TP_ItemGuildTab"><Anchor point="TOPLEFT" relativeTo="$(parent)Tab5" relativePoint="TOPRIGHT" offsetX="6" /></Button>
                             </Controls>
                         </Control>
-                        <Control name="$(parent)Header">
-                            <Dimensions y="26" />
+                        <Control name="$(parent)Forecast">
+                            <Dimensions y="30" />
                             <Anchor point="TOPLEFT" relativeTo="$(parent)GuildTabs" relativePoint="BOTTOMLEFT" offsetY="8" />
                             <Anchor point="TOPRIGHT" relativeTo="$(parent)GuildTabs" relativePoint="BOTTOMRIGHT" offsetY="8" />
+                            <Controls>
+                                <Backdrop name="$(parent)Background"><AnchorFill /><OnInitialized>self:SetCenterColor(0.045, 0.049, 0.059, 0.72) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop>
+                                <Backdrop name="$(parent)Marker"><Dimensions x="3" /><Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="1" offsetY="2" /><Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="1" offsetY="-2" /><OnInitialized>self:SetCenterColor(0.91, 0.77, 0.42, 1) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop>
+                                <Label name="$(parent)Label" font="ZoFontGameSmall" color="8D94A0" verticalAlignment="CENTER"><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="12" /><Dimensions x="300" y="30" /></Label>
+                                <Label name="$(parent)Value" font="ZoFontGameBold" color="E7C56A" horizontalAlignment="RIGHT" verticalAlignment="CENTER" wrapMode="ELLIPSIS"><Anchor point="RIGHT" relativeTo="$(parent)" relativePoint="RIGHT" offsetX="-12" /><Dimensions x="300" y="30" /></Label>
+                            </Controls>
+                        </Control>
+                        <Control name="$(parent)Header">
+                            <Dimensions y="26" />
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Forecast" relativePoint="BOTTOMLEFT" offsetY="4" />
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)Forecast" relativePoint="BOTTOMRIGHT" offsetY="4" />
                             <Controls>
                                 <Label name="$(parent)Guild" font="ZoFontGameSmall" color="8D94A0" verticalAlignment="CENTER"><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="8" /><Dimensions x="450" y="26" /></Label>
                                 <Label name="$(parent)Sold" font="ZoFontGameSmall" color="8D94A0" horizontalAlignment="RIGHT" verticalAlignment="CENTER"><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="468" /><Dimensions x="82" y="26" /></Label>
@@ -917,7 +928,7 @@
                                 <Control name="$(parent)Row8" inherits="TP_ItemSaleRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row7" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row7" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
                                 <Control name="$(parent)Row9" inherits="TP_ItemSaleRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row8" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row8" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
                                 <Control name="$(parent)Row10" inherits="TP_ItemSaleRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row9" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row9" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
-                                <Control name="$(parent)Row11" inherits="TP_ItemSaleRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row10" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row10" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row11" inherits="TP_ItemSaleRow" hidden="true"><Anchor point="TOPLEFT" relativeTo="$(parent)Row10" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row10" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
                                 <Control name="$(parent)Row12" inherits="TP_ItemSaleRow" hidden="true"><Anchor point="TOPLEFT" relativeTo="$(parent)Row11" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row11" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
                             </Controls>
                         </Control>
