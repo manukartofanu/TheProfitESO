@@ -62,7 +62,7 @@ local function Evaluate(itemData)
     if suggested and suggested <= 0 then suggested = nil end
     local percent = suggested and (suggested - unitPrice) / suggested * 100
 
-    -- No percent: the row shows BUY for the yellow state.
+    -- No percent: the row shows DEAL for the yellow state.
     if IsTrackedBuy(itemLink, unitPrice, stackCount) then return GOLD, nil end
     if not suggested then return nil end
 

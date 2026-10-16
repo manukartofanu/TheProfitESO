@@ -157,7 +157,7 @@ local function UpdateTextControl(rowControl, itemData)
         return
     end
 
-    text:SetText(percent and string.format("%d%%", zo_round(percent)) or "BUY")
+    text:SetText(percent and string.format("%d%%", zo_round(percent)) or "DEAL")
     text:SetColor(GetCategoryColor(category))
     text:SetHidden(false)
 end

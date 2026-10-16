@@ -77,7 +77,7 @@ the discount percentage and groups results into five ranges: below 1%, 1%-15%,
 
 Proficient uses five selectable deal categories. It marks especially deep TTC
 discounts with minimum absolute-profit thresholds, accepts a 25% return only
-when the TTC price has enough supporting sales, and marks a tracked item as BUY
+when the TTC price has enough supporting sales, and marks a tracked item as DEAL
 when The Profit's market model considers it ready to purchase. That model uses
 recent LibHistoire sales, liquidity, current tracked stock, price trend, and
 volatility. Listings without enough data remain in Other.
