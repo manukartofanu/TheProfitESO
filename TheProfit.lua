@@ -731,7 +731,7 @@ function TP.SetTrackedItem(itemLink)
 
     TP.RefreshUI()
     RequestPrioritySave()
-    d(string.format("|cE7C56AThe Profit:|r " .. TP.T("selected"), itemLink))
+    if isNew then d(string.format("|cE7C56AThe Profit:|r " .. TP.T("selected"), itemLink)) end
     return true
 end
 
