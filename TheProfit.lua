@@ -3195,7 +3195,6 @@ end
 
 function TP.SetupSettings()
     local LAM = LibAddonMenu2
-    if not LAM then return end
 
     local panelName = "TheProfitOptions"
     LAM:RegisterAddonPanel(panelName, {
@@ -3994,14 +3993,14 @@ local libHistoireRequestsStarted = false
 local MaybeStartSalesProcessors
 
 local function GetLibHistoireTraderCache(guildId)
-    local internal = LibHistoire and LibHistoire.internal
+    local internal = LibHistoire.internal
     local historyCache = internal and internal.historyCache
     if not historyCache then return nil end
     return historyCache:GetCategoryCache(guildId, GUILD_HISTORY_EVENT_CATEGORY_TRADER)
 end
 
 local function IsLibHistoireGuildReady(guildId)
-    local internal = LibHistoire and LibHistoire.internal
+    local internal = LibHistoire.internal
     local historyCache = internal and internal.historyCache
     local guildCache = historyCache and historyCache:GetGuildCache(guildId)
     if not guildCache then return true end
