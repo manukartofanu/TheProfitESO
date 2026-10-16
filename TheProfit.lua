@@ -1709,23 +1709,27 @@ local function GetPersonalActivityEntries()
         local records = kind == "sale" and TP.SV.sales or TP.SV.purchases
 
         for key, record in pairs(records or {}) do
-            local quantity = math.max(0, tonumber(record.quantity) or 0)
-            local totalPrice = math.max(0, tonumber(record.price) or 0)
-            local itemLink, itemName = GetTransactionItemDisplay(record)
-            local guildName = record.guildName
-            if (not guildName or guildName == "") and record.guildId then
-                local guildId = tonumber(record.guildId)
-                if guildId then guildName = GetGuildName(guildId) end
+            -- A purchase the server rejected never happened; it is kept only so a
+            -- retry of the same lot can be recognized.
+            if record.status ~= "failed" then
+                local quantity = math.max(0, tonumber(record.quantity) or 0)
+                local totalPrice = math.max(0, tonumber(record.price) or 0)
+                local itemLink, itemName = GetTransactionItemDisplay(record)
+                local guildName = record.guildName
+                if (not guildName or guildName == "") and record.guildId then
+                    local guildId = tonumber(record.guildId)
+                    if guildId then guildName = GetGuildName(guildId) end
+                end
+                entries[#entries + 1] = {
+                    id = tostring(record.id or key),
+                    itemLink = itemLink,
+                    itemName = itemName,
+                    guildName = guildName and guildName ~= "" and guildName or "—",
+                    quantity = quantity,
+                    unitPrice = quantity > 0 and totalPrice / quantity or 0,
+                    timestamp = tonumber(record.timestamp) or 0,
+                }
             end
-            entries[#entries + 1] = {
-                id = tostring(record.id or key),
-                itemLink = itemLink,
-                itemName = itemName,
-                guildName = guildName and guildName ~= "" and guildName or "—",
-                quantity = quantity,
-                unitPrice = quantity > 0 and totalPrice / quantity or 0,
-                timestamp = tonumber(record.timestamp) or 0,
-            }
         end
 
         table.sort(entries, function(a, b)
@@ -3411,6 +3415,7 @@ function TP.UpdateCurrentPurchase(status)
     if not purchase then return end
     purchase.status = status
     purchase.resolvedAt = GetTimeStamp()
+    InvalidatePersonalActivity("purchase")
     InvalidateItemSummary(purchase.itemKey)
     if status == "confirmed" or status == "failed" then
         TP.currentPurchaseKey = nil
@@ -3448,8 +3453,8 @@ function TP.OnAGSPurchase(itemData, succeeded)
         purchase.status = succeeded and "confirmed" or "failed"
         TP.SV.purchases[key] = purchase
         if TP.runtime then AddIndexedRecord(TP.runtime.purchasesByItem, key, purchase) end
-        InvalidatePersonalActivity("purchase")
     end
+    InvalidatePersonalActivity("purchase")
     InvalidateItemSummary((existing or purchase).itemKey)
     if TP.currentPurchaseKey == key then TP.currentPurchaseKey = nil end
     TP.RefreshUI()
