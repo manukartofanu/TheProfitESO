@@ -240,7 +240,7 @@
             </Controls>
         </Control>
 
-        <TopLevelControl name="TP_MainWindow" movable="true" mouseEnabled="true" clampedToScreen="true" hidden="true" tier="MEDIUM">
+        <TopLevelControl name="TheProfitMainWindow"movable="true" mouseEnabled="true" clampedToScreen="true" hidden="true" tier="MEDIUM">
             <Dimensions x="690" y="646" />
             <Anchor point="TOPLEFT" relativeTo="GuiRoot" relativePoint="TOPLEFT" offsetX="180" offsetY="120" />
             <OnInitialized>TheProfit.OnWindowInitialized(self)</OnInitialized>
