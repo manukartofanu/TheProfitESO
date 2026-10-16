@@ -131,6 +131,11 @@ velocity. If only part of a sold stack can be matched, its revenue and fees are
 included proportionally. This keeps pre-existing inventory and older unmatched
 sales from hiding the obligation created by a new purchase.
 
+Portfolio, Ledger, and Stock count only purchases made since an item was added to
+the portfolio. Removing an item and adding it again starts it from a clean slate:
+earlier purchases stay in My Deals but no longer affect its stock or profit, so
+portfolio profit covers only the items currently tracked.
+
 The projected result uses recent guild-sale history for each tracked item. The
 sample size follows one quarter of the observed 24-hour volume, with a minimum
 of 30 trades when enough history is available. The lowest and highest 15% of

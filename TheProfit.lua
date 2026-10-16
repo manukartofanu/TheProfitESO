@@ -448,6 +448,16 @@ local function MatchesTrackedItem(itemLink)
     return IsTrackedKey(TP.GetItemKey(itemLink))
 end
 
+-- A tracked item counts only purchases made since it was last added to the portfolio,
+-- so an item removed and added again starts from a clean slate. Items tracked before
+-- trackedSince existed count every purchase. Sales need no filter: FIFO matches a sale
+-- only with earlier purchases, so sales before that moment stay unmatched.
+local function IsTrackedPurchase(itemKey, purchase)
+    local item = TP.SV and TP.SV.trackedItems and TP.SV.trackedItems[itemKey]
+    if not item then return false end
+    return (tonumber(purchase.timestamp) or 0) >= (tonumber(item.trackedSince) or 0)
+end
+
 local function GetTrackedItemIndex(itemKey)
     for index, key in ipairs(TP.SV.trackedItemOrder or {}) do
         if key == itemKey then return index end
@@ -694,7 +704,7 @@ function TP.SetTrackedItem(itemLink)
         return false
     end
 
-    item = item or {}
+    item = item or { trackedSince = GetTimeStamp() }
     item.key = key
     item.link = itemLink
     item.name = zo_strformat(SI_TOOLTIP_ITEM_NAME, GetItemLinkName(itemLink))
@@ -1010,7 +1020,7 @@ function TP.CalculateSummary(itemKey)
     local fifoPurchaseLots = {}
     local indexedPurchases = TP.runtime and TP.runtime.purchasesByItem[itemKey] or {}
     for purchaseKey, purchase in pairs(indexedPurchases) do
-        if purchase.status ~= "failed" then
+        if purchase.status ~= "failed" and IsTrackedPurchase(itemKey, purchase) then
             local quantity = math.max(0, tonumber(purchase.quantity) or 0)
             result.boughtQuantity = result.boughtQuantity + quantity
             result.purchaseTotal = result.purchaseTotal + (tonumber(purchase.price) or 0)
@@ -1548,7 +1558,8 @@ local function GetLedgerEntries()
             for purchaseKey, purchase in pairs(purchaseBucket) do
                 local quantity = math.max(0, tonumber(purchase.quantity) or 0)
                 local totalPrice = math.max(0, tonumber(purchase.price) or 0)
-                if purchase.status ~= "failed" and quantity > 0 and totalPrice > 0 then
+                if purchase.status ~= "failed" and quantity > 0 and totalPrice > 0
+                    and IsTrackedPurchase(itemKey, purchase) then
                     local trackedItem = TP.SV.trackedItems and TP.SV.trackedItems[itemKey]
                     local itemLink = purchase.itemLink and IsItemLink(purchase.itemLink) and purchase.itemLink
                         or trackedItem and trackedItem.link
@@ -2058,7 +2069,8 @@ local function GetStockItemOptions()
             local sample
             if math.max(0, tonumber(summary.stock) or 0) > 0 then
                 for _, purchase in pairs(purchases) do
-                    if purchase.status ~= "failed" and math.max(0, tonumber(purchase.quantity) or 0) > 0 then
+                    if purchase.status ~= "failed" and math.max(0, tonumber(purchase.quantity) or 0) > 0
+                        and IsTrackedPurchase(itemKey, purchase) then
                         sample = purchase
                         break
                     end
