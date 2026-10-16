@@ -4066,6 +4066,8 @@ local function TryBuildInitialHistorySnapshots(generation)
     if TP.runtime.marketSalesPrunedGeneration ~= generation then
         PruneMarketSales()
         TP.runtime.marketSalesPrunedGeneration = generation
+        -- Market data is complete here; the snapshots below only feed All Deals and Stats.
+        TP.RefreshUI()
     end
     if initialSnapshotBuildGeneration == generation then return end
     initialSnapshotBuildGeneration = generation
