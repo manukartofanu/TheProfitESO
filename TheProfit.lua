@@ -352,25 +352,16 @@ local function SafeId64ToString(value)
     return tostring(value)
 end
 
-function TP.NormalizeItemLink(itemLink)
-    if not IsItemLink(itemLink) then return nil end
-
-    local normalized = itemLink:gsub("|H%d:item:", "|H0:item:", 1)
-    normalized = normalized:gsub("|h.-|h$", "|h|h")
-
-    -- One field in modern links is volatile between otherwise identical links.
-    -- Normalizes the volatile field so identical items share one key.
-    local prefix = normalized:match("|H%d:item:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:")
-    local suffix = normalized:match(":%d+:%d+:%d+:%d+|h|h")
-    if prefix and suffix then
-        normalized = prefix .. "0" .. suffix
-    end
-
-    return normalized
-end
-
+-- Only the item id is reliable: the same item comes with different other fields from
+-- different places (zeros from chat and the craft bag, filled in from the backpack,
+-- either way from a guild store depending on the lot). The key is a link that keeps
+-- the id and zeros the rest, so variants of one id (gear level and quality, glyphs,
+-- potion effects) share a key.
 function TP.GetItemKey(itemLink)
-    return TP.NormalizeItemLink(itemLink)
+    if not IsItemLink(itemLink) then return nil end
+    local itemId = itemLink:match("|H%d:item:(%d+)")
+    if not itemId then return nil end
+    return "|H0:item:" .. itemId .. string.rep(":0", 20) .. "|h|h"
 end
 
 local function FormatPlainGold(value)
@@ -527,6 +518,7 @@ local function SanitizeSavedTransactions(records)
     for key, record in pairs(records) do
         if (type(key) == "string" or type(key) == "number") and type(record) == "table" then
             local flat = CopyFlatTransaction(record)
+            flat.itemKey = TP.GetItemKey(flat.itemKey)
             if flat.itemKey and flat.timestamp and flat.kind then
                 clean[tostring(key)] = flat
             end
@@ -582,6 +574,7 @@ local function SanitizeSavedListings(records)
     for key, record in pairs(records) do
         if (type(key) == "string" or type(key) == "number") and type(record) == "table" then
             local flat = CopyFlatListing(record)
+            flat.itemKey = TP.GetItemKey(flat.itemKey)
             if flat.itemKey and (flat.createdAt or flat.timestamp) and flat.kind == "listing" then
                 flat.id = tostring(flat.id or key)
                 flat.createdAt = tonumber(flat.createdAt or flat.timestamp) or GetTimeStamp()
@@ -4438,7 +4431,10 @@ local function OnAddOnLoaded(_, addonName)
     local migratedItems = {}
     local migratedOrder = {}
     local function AddMigratedItem(item)
-        if type(item) ~= "table" or not item.key or migratedItems[item.key] or #migratedOrder >= MAX_TRACKED_ITEMS then return end
+        if type(item) ~= "table" then return end
+        -- Older keys kept more link fields; variants of one id now merge into one item.
+        item.key = TP.GetItemKey(item.key)
+        if not item.key or migratedItems[item.key] or #migratedOrder >= MAX_TRACKED_ITEMS then return end
         migratedItems[item.key] = item
         migratedOrder[#migratedOrder + 1] = item.key
     end

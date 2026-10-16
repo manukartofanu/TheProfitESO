@@ -227,3 +227,23 @@ sales from all participants, with guild, quantity x unit price, and sale time; t
 All Guilds tab combines the history from every configured guild. The configuration
 dialog controls which account guilds are loaded from LibHistoire and used for both
 this history and market calculations.
+
+Known limitations
+-----------------
+
+The Profit identifies an item by its item id alone. ESO gives the same item links
+with different extra fields depending on where they come from: chat and the craft
+bag usually give zeros, the backpack gives filled-in values, and a guild store lot
+keeps whatever the seller's item had. Only the id is reliable, so everything else
+in the link is ignored. This is exact for materials, style and trait materials,
+furnishings, motifs, recipes, and other items whose id already defines them.
+
+Items that share one id across variants are treated as one item:
+
+* Gear and jewelry of different levels or qualities.
+* Glyphs of different potency or quality.
+* Potions and poisons with different effects.
+* Master writs with different requirements.
+
+Group deal sharing only matches group members who run a version with the same
+item identification.
