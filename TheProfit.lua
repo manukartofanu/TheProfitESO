@@ -65,7 +65,7 @@ local MARKET_MIN_TRADES = 30
 local MARKET_TRIM_FRACTION = 0.15
 local MAX_TRACKED_ITEMS = 10
 local VISIBLE_PORTFOLIO_ROWS = 10
-local LEDGER_VISIBLE_ROWS = 17
+local LEDGER_VISIBLE_ROWS = 16
 local PERSONAL_ACTIVITY_VISIBLE_ROWS = 16
 local GUILD_HISTORY_VISIBLE_ROWS = 14
 local WEEKLY_ANALYTICS_VISIBLE_ROWS = 7
@@ -157,6 +157,7 @@ local strings = {
         ledgerSaleWhen = "SOLD AT",
         ledgerSold = "SOLD",
         ledgerEmpty = "No portfolio purchases have been recorded yet.",
+        ledgerSummary = "Sold %s − fees %s − cost of sold %s = profit %s",
         ledgerBoughtTooltip = "Purchased quantity × unit price. A purchase split across several sales is shown on several rows.",
         ledgerSoldTooltip = "Matched sale quantity × unit price. Unsold quantities have no corresponding sale.",
         activityPurchases = "Purchases",
@@ -282,6 +283,7 @@ local strings = {
         ledgerSaleWhen = "ПРОДАЖА",
         ledgerSold = "ПРОДАНО",
         ledgerEmpty = "Покупок для портфельного учёта пока нет.",
+        ledgerSummary = "Продано %s − комиссии %s − закупка проданного %s = прибыль %s",
         ledgerBoughtTooltip = "Количество покупки × цена за единицу. Если покупка закрывалась несколькими продажами, она показана несколькими строками.",
         ledgerSoldTooltip = "Сопоставленное количество продажи × цена за единицу. У непроданного остатка соответствующей продажи нет.",
         activityPurchases = "Покупки",
@@ -1609,8 +1611,12 @@ local function GetRecentMarketSales(itemKey, guildIdFilter)
     return result
 end
 
+-- Also returns the totals of the matched part only: sales revenue, their listing fees
+-- and trading-house cut, and the purchase cost of the pieces sold. Unsold remainders
+-- add nothing to them.
 local function GetLedgerEntries()
     local result = {}
+    local totals = { sold = 0, fees = 0, cost = 0 }
     local purchasesByItem = TP.runtime and TP.runtime.purchasesByItem or {}
     local salesByItem = TP.runtime and TP.runtime.salesByItem or {}
 
@@ -1647,12 +1653,16 @@ local function GetLedgerEntries()
                 local quantity = math.max(0, tonumber(sale.quantity) or 0)
                 local totalPrice = math.max(0, tonumber(sale.price) or 0)
                 if quantity > 0 and totalPrice > 0 then
+                    local listingFee = sale.listingFee
+                    if listingFee == nil then listingFee = GetSaleFees(totalPrice) end
+                    local fees = (tonumber(listingFee) or 0) + (tonumber(sale.tax) or 0)
                     saleRecords[#saleRecords + 1] = {
                         id = tostring(sale.id or saleKey),
                         timestamp = tonumber(sale.timestamp) or 0,
                         quantity = quantity,
                         remaining = quantity,
                         unitPrice = totalPrice / quantity,
+                        unitFees = fees / quantity,
                         sortKey = sale.id or saleKey,
                     }
                 end
@@ -1670,6 +1680,9 @@ local function GetLedgerEntries()
                         break
                     else
                         local quantity = math.min(sale.remaining, purchase.remaining)
+                        totals.sold = totals.sold + quantity * sale.unitPrice
+                        totals.fees = totals.fees + quantity * sale.unitFees
+                        totals.cost = totals.cost + quantity * purchase.unitPrice
                         result[#result + 1] = {
                             id = purchase.id .. ":" .. sale.id,
                             itemLink = purchase.itemLink,
@@ -1710,7 +1723,7 @@ local function GetLedgerEntries()
         if aSale ~= bSale then return aSale > bSale end
         return tostring(a.id) > tostring(b.id)
     end)
-    return result
+    return result, totals
 end
 
 local function FormatQuantityAtPrice(quantity, unitPrice)
@@ -2489,7 +2502,7 @@ local function RefreshLedgerUI()
     header:GetNamedChild("SaleWhen"):SetText(TP.T("ledgerSaleWhen"))
     header:GetNamedChild("Sold"):SetText(TP.T("ledgerSold"))
 
-    local entries = GetLedgerEntries()
+    local entries, totals = GetLedgerEntries()
     TP.ledgerEntryCount = #entries
     local maxOffset = math.max(0, #entries - LEDGER_VISIBLE_ROWS)
     local scrollOffset = zo_clamp(TP.ledgerScrollOffset or 0, 0, maxOffset)
@@ -2529,6 +2542,13 @@ local function RefreshLedgerUI()
     local empty = view:GetNamedChild("Empty")
     empty:SetText(TP.T("ledgerEmpty"))
     empty:SetHidden(#entries > 0)
+
+    -- Rounded before subtracting, so the shown numbers add up exactly.
+    local sold, fees, cost = zo_round(totals.sold), zo_round(totals.fees), zo_round(totals.cost)
+    local profit = sold - fees - cost
+    view:GetNamedChild("SummaryText"):SetText(string.format(TP.T("ledgerSummary"),
+        FormatPlainGold(sold), FormatPlainGold(fees), FormatPlainGold(cost),
+        ColorizeProfitText(FormatPlainGold(profit), profit)))
 end
 
 local function RefreshPersonalActivityPeriod()

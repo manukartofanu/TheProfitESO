@@ -208,8 +208,11 @@ button below the cards.
 Ledger presents recorded purchases for the currently tracked items newest-first
 and allocates personal sales to purchase lots using FIFO. Partial matches are
 shown separately, while an unsold remainder has no corresponding sale. Item
-links retain their hover and link actions. The view keeps seventeen rows visible
-and scrolls through older records.
+links retain their hover and link actions. The view keeps sixteen rows visible
+and scrolls through older records. The line below them shows the calculation for
+the sold part only: sales revenue minus listing fees and trading-house cut minus
+the purchase cost of the pieces sold, giving the realized profit. Unsold stock is
+left out.
 
 My Deals is a chronological, non-FIFO journal of personal trading. Purchases and
 sales have separate in-view tabs and can be filtered by ESO trading week. Each

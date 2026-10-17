@@ -485,9 +485,18 @@
                                 <Label name="$(parent)SaleWhen" font="ZoFontGameSmall" color="8D94A0" verticalAlignment="CENTER"><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="568" /><Dimensions x="80" y="26" /></Label>
                             </Controls>
                         </Control>
+                        <Control name="$(parent)Summary">
+                            <Dimensions y="31" />
+                            <Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" />
+                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-12" />
+                            <Controls>
+                                <Backdrop name="$(parent)Background"><AnchorFill /><OnInitialized>self:SetCenterColor(0.18, 0.14, 0.055, 0.48) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop>
+                                <Label name="$(parent)Text" font="ZoFontGame" color="E8E9EC" verticalAlignment="CENTER" wrapMode="ELLIPSIS"><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="8" /><Anchor point="RIGHT" relativeTo="$(parent)" relativePoint="RIGHT" offsetX="-8" /><Dimensions y="31" /></Label>
+                            </Controls>
+                        </Control>
                         <Control name="$(parent)Rows" mouseEnabled="true">
                             <Anchor point="TOPLEFT" relativeTo="$(parent)Header" relativePoint="BOTTOMLEFT" offsetY="2" />
-                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-12" />
+                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)Summary" relativePoint="TOPRIGHT" offsetY="-2" />
                             <OnMouseWheel>TheProfit.ScrollLedger(delta)</OnMouseWheel>
                             <Controls>
                                 <Control name="$(parent)Row1" inherits="TP_LedgerRow"><Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" /><Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" /></Control>
@@ -506,13 +515,12 @@
                                 <Control name="$(parent)Row14" inherits="TP_LedgerRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row13" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row13" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
                                 <Control name="$(parent)Row15" inherits="TP_LedgerRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row14" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row14" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
                                 <Control name="$(parent)Row16" inherits="TP_LedgerRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row15" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row15" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
-                                <Control name="$(parent)Row17" inherits="TP_LedgerRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row16" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row16" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
                             </Controls>
                         </Control>
                         <Slider name="$(parent)Scrollbar" mouseEnabled="true" step="1" hidden="true">
                             <Dimensions x="8" />
                             <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-2" offsetY="32" />
-                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-2" offsetY="-9" />
+                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)Rows" relativePoint="BOTTOMRIGHT" offsetX="10" />
                             <Limits min="0" max="1" />
                             <ThumbTexture textureFile="EsoUI/Art/ChatWindow/chat_thumb.dds" disabledTextureFile="EsoUI/Art/ChatWindow/chat_thumb_disabled.dds" thumbWidth="8" thumbHeight="54" bottom="0.6875" />
                             <BackgroundMiddle textureFile="EsoUI/Art/ChatWindow/chat_scrollbar_track.dds" />
