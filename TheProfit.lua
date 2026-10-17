@@ -123,6 +123,7 @@ local strings = {
         tabStock = "Stock",
         tabItem = "Price",
         tabBuyList = "Buy List",
+        tabSettings = "Settings",
         noItem = "No item selected",
         menuTrack = "Track in The Profit",
         menuSelect = "Select in The Profit",
@@ -247,6 +248,7 @@ local strings = {
         tabStock = "Остатки",
         tabItem = "Цена",
         tabBuyList = "Закупка",
+        tabSettings = "Настройки",
         noItem = "Предмет не выбран",
         menuTrack = "Отслеживать в The Profit",
         menuSelect = "Выбрать в The Profit",
@@ -1218,6 +1220,11 @@ local function ColorizeCardCaption(text)
     return "|c9B9FA9" .. tostring(text or "") .. "|r"
 end
 
+-- Views opened from the gear tab in the title bar, mapped to their tab in SettingsNav.
+local SETTINGS_TABS = {
+    buyList = "BuyListTab",
+}
+
 local function SetViewVisibility()
     if not TP.window then return end
     local view = TP.activeView or "portfolio"
@@ -1237,6 +1244,8 @@ local function SetViewVisibility()
     if stock then stock:SetHidden(view ~= "stock") end
     local buyList = TP.window:GetNamedChild("BuyListView")
     if buyList then buyList:SetHidden(view ~= "buyList") end
+    local settingsNav = TP.window:GetNamedChild("SettingsNav")
+    if settingsNav then settingsNav:SetHidden(not SETTINGS_TABS[view]) end
     local itemView = TP.window:GetNamedChild("ItemView")
     local tradingGuildDialog = TP.window:GetNamedChild("TradingGuildDialog")
     local tradingGuildDialogOpen = tradingGuildDialog and not tradingGuildDialog:IsHidden()
@@ -1249,7 +1258,6 @@ local function SetViewVisibility()
         GuildHistoryTab = "guildHistory",
         WeeklyAnalyticsTab = "weeklyAnalytics",
         StockTab = "stock",
-        BuyListTab = "buyList",
         ItemTab = "item",
     }
     for name, tabView in pairs(tabs) do
@@ -1257,10 +1265,20 @@ local function SetViewVisibility()
         local active = button and button:GetNamedChild("Active")
         if active then active:SetHidden(view ~= tabView) end
     end
+    local settingsActive = TP.window:GetNamedChild("TitleBarSettingsTabActive")
+    if settingsActive then settingsActive:SetHidden(not SETTINGS_TABS[view]) end
+    for tabView, name in pairs(SETTINGS_TABS) do
+        local button = TP.window:GetNamedChild("SettingsNav" .. name)
+        if button then
+            button:GetNamedChild("SelectedBackground"):SetHidden(view ~= tabView)
+            button:GetNamedChild("Active"):SetHidden(view ~= tabView)
+        end
+    end
 end
 
 function TP.SetView(view)
     if view ~= "portfolio" and view ~= "ledger" and view ~= "personalActivity" and view ~= "guildHistory" and view ~= "weeklyAnalytics" and view ~= "stock" and view ~= "buyList" and view ~= "item" then return end
+    if SETTINGS_TABS[view] then TP.lastSettingsView = view end
     if TP.activeView == view then return end
     TP.activeView = view
     TP.HideHeaderTooltip()
@@ -1268,6 +1286,10 @@ function TP.SetView(view)
         TP.EnsureFullGuildHistoryLoaded()
     end
     TP.RefreshUI()
+end
+
+function TP.OpenSettings()
+    TP.SetView(TP.lastSettingsView or "buyList")
 end
 
 function TP.OpenTradingGuilds()
@@ -3224,7 +3246,7 @@ function TP.RefreshUI()
     SetLabelText("TitleBarWeeklyAnalyticsTab", TP.T("tabWeeklyAnalytics"))
     SetLabelText("TitleBarStockTab", TP.T("tabStock"))
     SetLabelText("TitleBarItemTab", TP.T("tabItem"))
-    SetLabelText("TitleBarBuyListTab", TP.T("tabBuyList"))
+    SetLabelText("SettingsNavBuyListTab", TP.T("tabBuyList"))
     SetViewVisibility()
 
     if TP.activeView == "ledger" then

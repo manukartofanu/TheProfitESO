@@ -50,6 +50,15 @@
             </Controls>
         </Button>
 
+        <Button name="TP_SettingsTab" virtual="true" inherits="ZO_ButtonBehaviorClickSound" font="ZoFontGame" horizontalAlignment="CENTER" verticalAlignment="CENTER">
+            <Dimensions x="160" y="32" />
+            <FontColors normalColor="B8BBC2" pressedColor="E7C56A" mouseOverColor="E7C56A" />
+            <Controls>
+                <Backdrop name="$(parent)SelectedBackground" hidden="true"><AnchorFill /><OnInitialized>self:SetCenterColor(0.18, 0.14, 0.055, 0.48) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop>
+                <Backdrop name="$(parent)Active" hidden="true"><Dimensions y="2" /><Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" /><Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" /><OnInitialized>self:SetCenterColor(0.91, 0.77, 0.42, 1) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop>
+            </Controls>
+        </Button>
+
         <Control name="TP_OverallRow" virtual="true" mouseEnabled="true">
             <Dimensions y="27" />
             <OnMouseWheel>TheProfit.ScrollOverall(delta)</OnMouseWheel>
@@ -368,16 +377,9 @@
                             <OnClicked>TheProfit.SetView("ledger")</OnClicked>
                             <Controls><Backdrop name="$(parent)Active"><Dimensions y="2" /><Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" /><Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" /><OnInitialized>self:SetCenterColor(0.91, 0.77, 0.42, 1) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop></Controls>
                         </Button>
-                        <Button name="$(parent)BuyListTab" font="ZoFontGameSmall" horizontalAlignment="CENTER" verticalAlignment="CENTER" inherits="ZO_ButtonBehaviorClickSound">
-                            <Dimensions x="58" y="30" />
-                            <Anchor point="RIGHT" relativeTo="$(parent)LedgerTab" relativePoint="LEFT" offsetX="-2" />
-                            <FontColors normalColor="B8BBC2" pressedColor="E7C56A" mouseOverColor="E7C56A" />
-                            <OnClicked>TheProfit.SetView("buyList")</OnClicked>
-                            <Controls><Backdrop name="$(parent)Active" hidden="true"><Dimensions y="2" /><Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" /><Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" /><OnInitialized>self:SetCenterColor(0.91, 0.77, 0.42, 1) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop></Controls>
-                        </Button>
                         <Button name="$(parent)StockTab" font="ZoFontGameSmall" horizontalAlignment="CENTER" verticalAlignment="CENTER" inherits="ZO_ButtonBehaviorClickSound">
                             <Dimensions x="60" y="30" />
-                            <Anchor point="RIGHT" relativeTo="$(parent)BuyListTab" relativePoint="LEFT" offsetX="-2" />
+                            <Anchor point="RIGHT" relativeTo="$(parent)LedgerTab" relativePoint="LEFT" offsetX="-2" />
                             <FontColors normalColor="B8BBC2" pressedColor="E7C56A" mouseOverColor="E7C56A" />
                             <OnClicked>TheProfit.SetView("stock")</OnClicked>
                             <Controls><Backdrop name="$(parent)Active" hidden="true"><Dimensions y="2" /><Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" /><Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" /><OnInitialized>self:SetCenterColor(0.91, 0.77, 0.42, 1) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop></Controls>
@@ -395,6 +397,15 @@
                             <FontColors normalColor="B8BBC2" pressedColor="E7C56A" mouseOverColor="E7C56A" />
                             <OnClicked>TheProfit.SetView("portfolio")</OnClicked>
                             <Controls><Backdrop name="$(parent)Active"><Dimensions y="2" /><Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" /><Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" /><OnInitialized>self:SetCenterColor(0.91, 0.77, 0.42, 1) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop></Controls>
+                        </Button>
+                        <Button name="$(parent)SettingsTab" inherits="ZO_ButtonBehaviorClickSound">
+                            <Dimensions x="32" y="32" />
+                            <Anchor point="RIGHT" relativeTo="$(parent)PortfolioTab" relativePoint="LEFT" offsetX="-8" />
+                            <Textures normal="EsoUI/Art/ChatWindow/chat_options_up.dds" pressed="EsoUI/Art/ChatWindow/chat_options_down.dds" mouseOver="EsoUI/Art/ChatWindow/chat_options_over.dds" />
+                            <OnClicked>TheProfit.OpenSettings()</OnClicked>
+                            <OnMouseEnter>TheProfit.ShowHeaderTooltip(self, "tabSettings")</OnMouseEnter>
+                            <OnMouseExit>TheProfit.HideHeaderTooltip()</OnMouseExit>
+                            <Controls><Backdrop name="$(parent)Active" hidden="true"><Dimensions y="2" /><Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetY="-3" /><Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetY="-3" /><OnInitialized>self:SetCenterColor(0.91, 0.77, 0.42, 1) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop></Controls>
                         </Button>
                     </Controls>
                 </Control>
@@ -921,8 +932,17 @@
                     </Controls>
                 </Control>
 
+                <Control name="$(parent)SettingsNav" hidden="true">
+                    <Dimensions y="32" />
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)TitleBar" relativePoint="BOTTOMLEFT" offsetX="12" offsetY="10" />
+                    <Anchor point="TOPRIGHT" relativeTo="$(parent)TitleBar" relativePoint="BOTTOMRIGHT" offsetX="-24" offsetY="10" />
+                    <Controls>
+                        <Button name="$(parent)BuyListTab" inherits="TP_SettingsTab"><Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" /><OnClicked>TheProfit.SetView("buyList")</OnClicked></Button>
+                    </Controls>
+                </Control>
+
                 <Control name="$(parent)BuyListView" mouseEnabled="true" hidden="true">
-                    <Anchor point="TOPLEFT" relativeTo="$(parent)TitleBar" relativePoint="BOTTOMLEFT" offsetX="12" offsetY="6" />
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)SettingsNav" relativePoint="BOTTOMLEFT" offsetY="8" />
                     <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-12" offsetY="-8" />
                     <OnMouseWheel>TheProfit.ScrollBuyList(delta)</OnMouseWheel>
                     <Controls>
