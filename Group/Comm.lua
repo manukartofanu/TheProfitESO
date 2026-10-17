@@ -206,15 +206,19 @@ local function GetEntry(itemKey)
     return { itemId = itemId, hash = hash, price = price }
 end
 
+-- Also returns the item key of each entry, for display only.
 local function BuildOwnItems()
-    local items = {}
+    local items, keys = {}, {}
     for _, itemKey in ipairs(TP.GetGroupWantKeys()) do
         if #items < ITEMS_PER_TABLE_PART * MAX_TABLE_PARTS then
             local entry = GetEntry(itemKey)
-            if entry then items[#items + 1] = entry end
+            if entry then
+                items[#items + 1] = entry
+                keys[#items] = itemKey
+            end
         end
     end
-    return items
+    return items, keys
 end
 
 -- The first part replaces any older table still waiting in the queue; later parts
@@ -702,6 +706,32 @@ end
 
 function TP.GetGroupPeers()
     return state.peers
+end
+
+-- Exactly what the next table would carry, as { itemKey, price } in send order.
+function TP.GetGroupShareEntries()
+    local items, keys = BuildOwnItems()
+    local entries = {}
+    for index, entry in ipairs(items) do
+        entries[index] = { itemKey = keys[index], price = entry.price }
+    end
+    return entries
+end
+
+-- "noLibrary", "off", "notGrouped" or "ready" (the list is being sent).
+function TP.GetGroupShareStatus()
+    if not LGB or not state.ready then return "noLibrary" end
+    if not IsEnabled() then return "off" end
+    if not IsGrouped() then return "notGrouped" end
+    return "ready"
+end
+
+-- Sends the full table now instead of waiting for the next scheduled one.
+function TP.SendGroupShareNow()
+    if not CanSend() then return false end
+    state.pendingFull = true
+    Flush()
+    return true
 end
 
 local function YesNo(value)

@@ -73,6 +73,7 @@ local STOCK_ITEM_VISIBLE_ROWS = 10
 local STOCK_LISTING_VISIBLE_ROWS = 7
 local ITEM_SALES_VISIBLE_ROWS = 10
 local BUY_LIST_VISIBLE_ROWS = 14
+local GROUP_SHARE_VISIBLE_ROWS = 14
 local SUMMARY_CACHE_TTL = 60
 local ANALYTICS_REFRESH_COOLDOWN_MS = 60 * 1000
 local GUILD_HISTORY_REFRESH_COOLDOWN_MS = 60 * 1000
@@ -124,6 +125,14 @@ local strings = {
         tabItem = "Price",
         tabBuyList = "Buy List",
         tabSettings = "Settings",
+        tabGroupShare = "Group Sharing",
+        groupSharePrice = "PRICE PER PIECE",
+        groupShareRefresh = "Refresh and Send",
+        groupShareNoLibrary = "LibGroupBroadcast is not available, so nothing is sent. This is what would be sent.",
+        groupShareOff = "Group sharing is off in the add-on settings, so nothing is sent. This is what would be sent.",
+        groupShareNotGrouped = "Not in a group. This list is sent when you join one.",
+        groupShareReady = "Sent to group members who also run The Profit.",
+        groupShareEmpty = "Nothing to share: no tracked or Buy List item has a price.",
         noItem = "No item selected",
         menuTrack = "Track in The Profit",
         menuSelect = "Select in The Profit",
@@ -250,6 +259,14 @@ local strings = {
         tabItem = "Цена",
         tabBuyList = "Закупка",
         tabSettings = "Настройки",
+        tabGroupShare = "Обмен с группой",
+        groupSharePrice = "ЦЕНА ЗА ШТУКУ",
+        groupShareRefresh = "Обновить и отправить",
+        groupShareNoLibrary = "LibGroupBroadcast недоступна, поэтому ничего не отправляется. Так выглядел бы отправляемый список.",
+        groupShareOff = "Обмен с группой выключен в настройках аддона, поэтому ничего не отправляется. Так выглядел бы отправляемый список.",
+        groupShareNotGrouped = "Вы не в группе. Этот список отправится, когда вы вступите в группу.",
+        groupShareReady = "Отправляется участникам группы, у которых тоже есть The Profit.",
+        groupShareEmpty = "Отправлять нечего: ни у одного отслеживаемого или закупаемого предмета нет цены.",
         noItem = "Предмет не выбран",
         menuTrack = "Отслеживать в The Profit",
         menuSelect = "Выбрать в The Profit",
@@ -1225,6 +1242,7 @@ end
 -- Views opened from the gear tab in the title bar, mapped to their tab in SettingsNav.
 local SETTINGS_TABS = {
     buyList = "BuyListTab",
+    groupShare = "GroupShareTab",
 }
 
 local function SetViewVisibility()
@@ -1246,6 +1264,8 @@ local function SetViewVisibility()
     if stock then stock:SetHidden(view ~= "stock") end
     local buyList = TP.window:GetNamedChild("BuyListView")
     if buyList then buyList:SetHidden(view ~= "buyList") end
+    local groupShare = TP.window:GetNamedChild("GroupShareView")
+    if groupShare then groupShare:SetHidden(view ~= "groupShare") end
     local settingsNav = TP.window:GetNamedChild("SettingsNav")
     if settingsNav then settingsNav:SetHidden(not SETTINGS_TABS[view]) end
     local itemView = TP.window:GetNamedChild("ItemView")
@@ -1279,7 +1299,7 @@ local function SetViewVisibility()
 end
 
 function TP.SetView(view)
-    if view ~= "portfolio" and view ~= "ledger" and view ~= "personalActivity" and view ~= "guildHistory" and view ~= "weeklyAnalytics" and view ~= "stock" and view ~= "buyList" and view ~= "item" then return end
+    if view ~= "portfolio" and view ~= "ledger" and view ~= "personalActivity" and view ~= "guildHistory" and view ~= "weeklyAnalytics" and view ~= "stock" and view ~= "buyList" and view ~= "groupShare" and view ~= "item" then return end
     if SETTINGS_TABS[view] then TP.lastSettingsView = view end
     if TP.activeView == view then return end
     TP.activeView = view
@@ -2461,6 +2481,20 @@ function TP.RemoveBuyListRow(button)
     if row and row.itemKey then TP.RemoveFromBuyList(row.itemKey) end
 end
 
+function TP.ScrollGroupShare(delta)
+    ScrollGridByWheel(delta, "groupShareEntryCount", GROUP_SHARE_VISIBLE_ROWS, "groupShareScrollOffset")
+end
+
+function TP.OnGroupShareScrollChanged(value)
+    SetGridScrollValue(value, "settingGroupShareScroll", "groupShareEntryCount", GROUP_SHARE_VISIBLE_ROWS,
+        "groupShareScrollOffset")
+end
+
+function TP.RefreshAndSendGroupShare()
+    if TP.SendGroupShareNow then TP.SendGroupShareNow() end
+    TP.RefreshUI()
+end
+
 function TP.ScrollItemSales(delta)
     ScrollGridByWheel(delta, "itemSalesEntryCount", ITEM_SALES_VISIBLE_ROWS, "itemSalesScrollOffset")
 end
@@ -3173,6 +3207,56 @@ local function RefreshBuyListUI()
     view:GetNamedChild("Hint"):SetText(TP.T("buyListHint"))
 end
 
+local GROUP_SHARE_STATUS_TEXT = {
+    noLibrary = "groupShareNoLibrary",
+    off = "groupShareOff",
+    notGrouped = "groupShareNotGrouped",
+    ready = "groupShareReady",
+}
+
+-- Read-only: the items and unit prices the group table carries, in send order.
+local function RefreshGroupShareUI()
+    local view = TP.window:GetNamedChild("GroupShareView")
+    if not view then return end
+    local entries = TP.GetGroupShareEntries and TP.GetGroupShareEntries() or {}
+
+    TP.groupShareEntryCount = #entries
+    local maxOffset = math.max(0, #entries - GROUP_SHARE_VISIBLE_ROWS)
+    TP.groupShareScrollOffset = zo_clamp(TP.groupShareScrollOffset or 0, 0, maxOffset)
+    RefreshGridScrollbar(view:GetNamedChild("Scrollbar"), #entries, GROUP_SHARE_VISIBLE_ROWS,
+        TP.groupShareScrollOffset, "settingGroupShareScroll")
+
+    local header = view:GetNamedChild("Header")
+    header:GetNamedChild("Item"):SetText(TP.T("ledgerItem"))
+    header:GetNamedChild("Price"):SetText(TP.T("groupSharePrice"))
+
+    local rows = view:GetNamedChild("Rows")
+    for index = 1, GROUP_SHARE_VISIBLE_ROWS do
+        local row = rows:GetNamedChild("Row" .. index)
+        local entry = entries[TP.groupShareScrollOffset + index]
+        local item = entry and TP.GetWantedItem(entry.itemKey)
+        row:SetHidden(entry == nil)
+        row.itemLink = item and item.link or nil
+        if entry then
+            local icon = item and item.icon
+            local itemIcon = row:GetNamedChild("Icon")
+            itemIcon:SetHidden(not icon or icon == "")
+            if icon and icon ~= "" then itemIcon:SetTexture(icon) end
+            local itemLabel = row:GetNamedChild("Item")
+            itemLabel:SetText(item and (item.link or item.name) or "?")
+            local r, g, b = TP.GetGroupItemColor(item and item.link)
+            itemLabel:SetColor(r, g, b, 1)
+            row:GetNamedChild("Price"):SetText(ZO_CommaDelimitNumber(entry.price))
+        end
+    end
+
+    view:GetNamedChild("Empty"):SetText(TP.T("groupShareEmpty"))
+    view:GetNamedChild("Empty"):SetHidden(#entries > 0)
+    local status = TP.GetGroupShareStatus and TP.GetGroupShareStatus() or "noLibrary"
+    view:GetNamedChild("Status"):SetText(TP.T(GROUP_SHARE_STATUS_TEXT[status]))
+    view:GetNamedChild("Refresh"):SetText(TP.T("groupShareRefresh"))
+end
+
 local function RefreshItemUI(selected)
     local view = TP.window:GetNamedChild("ItemView")
     if not view then return end
@@ -3267,6 +3351,7 @@ function TP.RefreshUI()
     SetLabelText("TitleBarStockTab", TP.T("tabStock"))
     SetLabelText("TitleBarItemTab", TP.T("tabItem"))
     SetLabelText("SettingsNavBuyListTab", TP.T("tabBuyList"))
+    SetLabelText("SettingsNavGroupShareTab", TP.T("tabGroupShare"))
     SetViewVisibility()
 
     if TP.activeView == "ledger" then
@@ -3286,6 +3371,9 @@ function TP.RefreshUI()
         return
     elseif TP.activeView == "buyList" then
         RefreshBuyListUI()
+        return
+    elseif TP.activeView == "groupShare" then
+        RefreshGroupShareUI()
         return
     elseif TP.activeView == "item" then
         RefreshItemUI(selected)

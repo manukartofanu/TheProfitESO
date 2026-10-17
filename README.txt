@@ -131,6 +131,11 @@ size, locking, preview, and both window positions are available in the Group
 settings. `/theprofit group` prints the current sharing and peer state for
 diagnostics.
 
+The Group Sharing tab under the window's Settings (gear) button lists, read-only,
+each item and unit price that the next shared table carries, in send order, and
+says whether it is being sent. Refresh and Send rebuilds the list from current
+prices and sends it to the group at once.
+
 Active listings are captured when an item is posted, but are saved only after
 ESO confirms the request. Whenever the current guild's listing page is loaded,
 the saved state is reconciled against ESO's real listing list after a short

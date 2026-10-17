@@ -278,6 +278,24 @@
             </Controls>
         </Control>
 
+        <Control name="TP_GroupShareRow" virtual="true" mouseEnabled="true">
+            <Dimensions y="31" />
+            <OnMouseWheel>TheProfit.ScrollGroupShare(delta)</OnMouseWheel>
+            <Controls>
+                <Backdrop name="$(parent)Background"><AnchorFill /><OnInitialized>self:SetCenterColor(0.045, 0.049, 0.059, 0.72) self:SetEdgeColor(0, 0, 0, 0)</OnInitialized></Backdrop>
+                <Texture name="$(parent)Icon"><Dimensions x="22" y="22" /><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="8" /></Texture>
+                <Label name="$(parent)Item" font="ZoFontGame" color="E8E9EC" verticalAlignment="CENTER" wrapMode="ELLIPSIS" linkEnabled="true" mouseEnabled="true">
+                    <Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="36" />
+                    <Dimensions x="420" y="31" />
+                    <OnMouseEnter>TheProfit.ShowGridItemTooltip(self)</OnMouseEnter>
+                    <OnMouseExit>TheProfit.HideGridItemTooltip()</OnMouseExit>
+                    <OnMouseUp>TheProfit.OpenGridItemLink(self, button, upInside)</OnMouseUp>
+                    <OnMouseWheel>TheProfit.ScrollGroupShare(delta)</OnMouseWheel>
+                </Label>
+                <Label name="$(parent)Price" font="ZoFontGame" color="E7C56A" horizontalAlignment="RIGHT" verticalAlignment="CENTER"><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="466" /><Dimensions x="170" y="31" /></Label>
+            </Controls>
+        </Control>
+
         <Control name="TP_ItemSaleRow" virtual="true" mouseEnabled="true">
             <Dimensions y="31" />
             <OnMouseWheel>TheProfit.ScrollItemSales(delta)</OnMouseWheel>
@@ -946,6 +964,63 @@
                     <Anchor point="TOPRIGHT" relativeTo="$(parent)TitleBar" relativePoint="BOTTOMRIGHT" offsetX="-24" offsetY="10" />
                     <Controls>
                         <Button name="$(parent)BuyListTab" inherits="TP_SettingsTab"><Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" /><OnClicked>TheProfit.SetView("buyList")</OnClicked></Button>
+                        <Button name="$(parent)GroupShareTab" inherits="TP_SettingsTab"><Anchor point="TOPLEFT" relativeTo="$(parent)BuyListTab" relativePoint="TOPRIGHT" offsetX="6" /><OnClicked>TheProfit.SetView("groupShare")</OnClicked></Button>
+                    </Controls>
+                </Control>
+
+                <Control name="$(parent)GroupShareView" mouseEnabled="true" hidden="true">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)SettingsNav" relativePoint="BOTTOMLEFT" offsetY="8" />
+                    <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-12" offsetY="-8" />
+                    <OnMouseWheel>TheProfit.ScrollGroupShare(delta)</OnMouseWheel>
+                    <Controls>
+                        <Control name="$(parent)Header">
+                            <Dimensions y="26" />
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-12" />
+                            <Controls>
+                                <Label name="$(parent)Item" font="ZoFontGameSmall" color="8D94A0" verticalAlignment="CENTER"><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="8" /><Dimensions x="440" y="26" /></Label>
+                                <Label name="$(parent)Price" font="ZoFontGameSmall" color="8D94A0" horizontalAlignment="RIGHT" verticalAlignment="CENTER" wrapMode="ELLIPSIS"><Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="466" /><Dimensions x="170" y="26" /></Label>
+                            </Controls>
+                        </Control>
+                        <Control name="$(parent)Rows" mouseEnabled="true">
+                            <Dimensions y="460" />
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Header" relativePoint="BOTTOMLEFT" offsetY="2" />
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)Header" relativePoint="BOTTOMRIGHT" offsetY="2" />
+                            <OnMouseWheel>TheProfit.ScrollGroupShare(delta)</OnMouseWheel>
+                            <Controls>
+                                <Control name="$(parent)Row1" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" /><Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" /></Control>
+                                <Control name="$(parent)Row2" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row1" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row1" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row3" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row2" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row2" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row4" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row3" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row3" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row5" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row4" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row4" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row6" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row5" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row5" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row7" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row6" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row6" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row8" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row7" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row7" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row9" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row8" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row8" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row10" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row9" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row9" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row11" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row10" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row10" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row12" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row11" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row11" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row13" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row12" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row12" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                                <Control name="$(parent)Row14" inherits="TP_GroupShareRow"><Anchor point="TOPLEFT" relativeTo="$(parent)Row13" relativePoint="BOTTOMLEFT" offsetY="2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Row13" relativePoint="BOTTOMRIGHT" offsetY="2" /></Control>
+                            </Controls>
+                        </Control>
+                        <Slider name="$(parent)Scrollbar" mouseEnabled="true" step="1" hidden="true">
+                            <Dimensions x="8" />
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)Rows" relativePoint="TOPRIGHT" offsetX="10" />
+                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)Rows" relativePoint="BOTTOMRIGHT" offsetX="10" />
+                            <Limits min="0" max="1" />
+                            <ThumbTexture textureFile="EsoUI/Art/ChatWindow/chat_thumb.dds" disabledTextureFile="EsoUI/Art/ChatWindow/chat_thumb_disabled.dds" thumbWidth="8" thumbHeight="54" bottom="0.6875" />
+                            <BackgroundMiddle textureFile="EsoUI/Art/ChatWindow/chat_scrollbar_track.dds" />
+                            <OnValueChanged>TheProfit.OnGroupShareScrollChanged(value)</OnValueChanged>
+                            <OnMouseWheel>TheProfit.ScrollGroupShare(delta)</OnMouseWheel>
+                        </Slider>
+                        <Label name="$(parent)Empty" font="ZoFontGame" color="777C86" horizontalAlignment="CENTER" verticalAlignment="CENTER" wrapMode="ELLIPSIS"><Anchor point="TOPLEFT" relativeTo="$(parent)Rows" relativePoint="TOPLEFT" offsetX="12" /><Anchor point="BOTTOMRIGHT" relativeTo="$(parent)Rows" relativePoint="BOTTOMRIGHT" offsetX="-12" /></Label>
+                        <Button name="$(parent)Refresh" inherits="ZO_DefaultButton">
+                            <Dimensions x="220" y="30" />
+                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-12" offsetY="-2" />
+                            <OnClicked>TheProfit.RefreshAndSendGroupShare()</OnClicked>
+                        </Button>
+                        <Label name="$(parent)Status" font="ZoFontGameSmall" color="8D94A0" verticalAlignment="CENTER" wrapMode="ELLIPSIS"><Anchor point="BOTTOMLEFT" relativeTo="$(parent)" relativePoint="BOTTOMLEFT" offsetX="8" offsetY="-2" /><Anchor point="TOPRIGHT" relativeTo="$(parent)Refresh" relativePoint="TOPLEFT" offsetX="-12" /></Label>
                     </Controls>
                 </Control>
 
