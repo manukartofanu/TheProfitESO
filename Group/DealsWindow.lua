@@ -86,7 +86,7 @@ local function Refresh()
         local deal = deals[window.offset + index]
         row:SetHidden(deal == nil)
         if deal then
-            local item = TP.SV.trackedItems[deal.itemKey]
+            local item = TP.GetWantedItem(deal.itemKey)
             local alpha = deal.visitedAt and DIMMED_ALPHA or 1
             local name = item and item.name or "?"
             if deal.visitedAt then name = name .. " |c9B9FA9(" .. L("visited") .. ")|r" end

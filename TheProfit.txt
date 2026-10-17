@@ -10,6 +10,7 @@
 
 TheProfit.lua
 TheProfit_Margin.lua
+TheProfit_BuyList.lua
 AGS_Integration/Filter.lua
 AGS_Integration/FilterProficient.lua
 Group/HudMessage.lua

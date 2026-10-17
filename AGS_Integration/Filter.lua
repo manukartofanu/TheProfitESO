@@ -151,13 +151,13 @@ local function UpdateTextControl(rowControl, itemData)
     text:SetFont(GetHintFont())
 
     -- Looked up on each call: the Proficient type replaces the evaluation.
-    local category, percent = TP.SimpleMargin.Evaluate(itemData)
+    local category, percent, label = TP.SimpleMargin.Evaluate(itemData)
     if not category then
         text:SetHidden(true)
         return
     end
 
-    text:SetText(percent and string.format("%d%%", zo_round(percent)) or "DEAL")
+    text:SetText(percent and string.format("%d%%", zo_round(percent)) or label or "DEAL")
     text:SetColor(GetCategoryColor(category))
     text:SetHidden(false)
 end

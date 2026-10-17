@@ -72,6 +72,7 @@ local WEEKLY_ANALYTICS_VISIBLE_ROWS = 7
 local STOCK_ITEM_VISIBLE_ROWS = 10
 local STOCK_LISTING_VISIBLE_ROWS = 7
 local ITEM_SALES_VISIBLE_ROWS = 10
+local BUY_LIST_VISIBLE_ROWS = 14
 local SUMMARY_CACHE_TTL = 60
 local ANALYTICS_REFRESH_COOLDOWN_MS = 60 * 1000
 local GUILD_HISTORY_REFRESH_COOLDOWN_MS = 60 * 1000
@@ -100,6 +101,8 @@ local defaults = {
     selectedItem = nil,
     trackedItems = {},
     trackedItemOrder = {},
+    buyList = {},
+    buyListOrder = {},
     purchases = {},
     sales = {},
     listings = {},
@@ -119,12 +122,22 @@ local strings = {
         tabWeeklyAnalytics = "Stats",
         tabStock = "Stock",
         tabItem = "Price",
+        tabBuyList = "Buy List",
         noItem = "No item selected",
         menuTrack = "Track in The Profit",
         menuSelect = "Select in The Profit",
         menuOpen = "Open The Profit",
         menuShowPrice = "Show Price",
         menuShowGuildSales = "Show Sales in My Guilds",
+        menuAddBuyList = "Add to Buy List",
+        buyListFull = "The Buy List already contains 20 items. Remove one before adding another.",
+        buyListMaxPrice = "MAX PRICE",
+        buyListQuantity = "QUANTITY",
+        buyListBought = "BOUGHT",
+        buyListRemaining = "LEFT",
+        buyListEmpty = "Right-click an item and choose Add to Buy List.",
+        buyListHint = "Max price is per piece; 0 uses the TTC suggested price, or the Portfolio buy price without one. Purchases count from the moment an item is added.",
+        buyListRemove = "Remove from Buy List",
         projectedProfit = "PROJECTED ITEM PROFIT",
         returnRate = "ROI",
         forecastPrice = "FORECAST PRICE",
@@ -233,12 +246,22 @@ local strings = {
         tabWeeklyAnalytics = "Статистика",
         tabStock = "Остатки",
         tabItem = "Цена",
+        tabBuyList = "Закупка",
         noItem = "Предмет не выбран",
         menuTrack = "Отслеживать в The Profit",
         menuSelect = "Выбрать в The Profit",
         menuOpen = "Открыть The Profit",
         menuShowPrice = "Показать цену",
         menuShowGuildSales = "Показать продажи в моих гильдиях",
+        menuAddBuyList = "Добавить в закупку",
+        buyListFull = "В закупке уже 20 позиций. Уберите одну перед добавлением новой.",
+        buyListMaxPrice = "МАКС. ЦЕНА",
+        buyListQuantity = "КОЛИЧЕСТВО",
+        buyListBought = "КУПЛЕНО",
+        buyListRemaining = "ОСТАЛОСЬ",
+        buyListEmpty = "Щёлкните предмет правой кнопкой и выберите «Добавить в закупку».",
+        buyListHint = "Макс. цена указывается за штуку; 0 — рекомендованная цена TTC, а без неё цена покупки из портфеля. Покупки считаются с момента добавления предмета.",
+        buyListRemove = "Убрать из закупки",
         projectedProfit = "ПРОГНОЗНАЯ ПРИБЫЛЬ ПРЕДМЕТА",
         returnRate = "ROI",
         forecastPrice = "РАСЧЁТНАЯ ЦЕНА",
@@ -1212,6 +1235,8 @@ local function SetViewVisibility()
     if weeklyAnalytics then weeklyAnalytics:SetHidden(view ~= "weeklyAnalytics") end
     local stock = TP.window:GetNamedChild("StockView")
     if stock then stock:SetHidden(view ~= "stock") end
+    local buyList = TP.window:GetNamedChild("BuyListView")
+    if buyList then buyList:SetHidden(view ~= "buyList") end
     local itemView = TP.window:GetNamedChild("ItemView")
     local tradingGuildDialog = TP.window:GetNamedChild("TradingGuildDialog")
     local tradingGuildDialogOpen = tradingGuildDialog and not tradingGuildDialog:IsHidden()
@@ -1224,6 +1249,7 @@ local function SetViewVisibility()
         GuildHistoryTab = "guildHistory",
         WeeklyAnalyticsTab = "weeklyAnalytics",
         StockTab = "stock",
+        BuyListTab = "buyList",
         ItemTab = "item",
     }
     for name, tabView in pairs(tabs) do
@@ -1234,7 +1260,7 @@ local function SetViewVisibility()
 end
 
 function TP.SetView(view)
-    if view ~= "portfolio" and view ~= "ledger" and view ~= "personalActivity" and view ~= "guildHistory" and view ~= "weeklyAnalytics" and view ~= "stock" and view ~= "item" then return end
+    if view ~= "portfolio" and view ~= "ledger" and view ~= "personalActivity" and view ~= "guildHistory" and view ~= "weeklyAnalytics" and view ~= "stock" and view ~= "buyList" and view ~= "item" then return end
     if TP.activeView == view then return end
     TP.activeView = view
     TP.HideHeaderTooltip()
@@ -2370,6 +2396,36 @@ function TP.OnLedgerScrollChanged(value)
         "ledgerScrollOffset")
 end
 
+function TP.ScrollBuyList(delta)
+    ScrollGridByWheel(delta, "buyListEntryCount", BUY_LIST_VISIBLE_ROWS, "buyListScrollOffset")
+end
+
+function TP.OnBuyListScrollChanged(value)
+    SetGridScrollValue(value, "settingBuyListScroll", "buyListEntryCount", BUY_LIST_VISIBLE_ROWS,
+        "buyListScrollOffset")
+end
+
+-- Edit boxes sit in a backdrop inside the row, and the row carries the item key. The
+-- key is taken when editing starts, so scrolling meanwhile cannot save to another item.
+function TP.BeginBuyListEdit(editBox)
+    local row = editBox and editBox:GetParent() and editBox:GetParent():GetParent()
+    editBox.itemKey = row and row.itemKey or nil
+end
+
+function TP.CommitBuyListValue(editBox, field)
+    local itemKey = editBox and editBox.itemKey
+    if not itemKey then return end
+    editBox.itemKey = nil
+    TP.SetBuyListValue(itemKey, field, editBox:GetText())
+    -- Also restores the saved number when the text did not change it, e.g. an empty box.
+    TP.RefreshUI()
+end
+
+function TP.RemoveBuyListRow(button)
+    local row = button and button:GetParent()
+    if row and row.itemKey then TP.RemoveFromBuyList(row.itemKey) end
+end
+
 function TP.ScrollItemSales(delta)
     ScrollGridByWheel(delta, "itemSalesEntryCount", ITEM_SALES_VISIBLE_ROWS, "itemSalesScrollOffset")
 end
@@ -3010,6 +3066,71 @@ local function RefreshMarketSaleRow(row, entry)
     row:GetNamedChild("SaleWhen"):SetText((TP.FormatAge(entry.timestamp):gsub("%.$", "")))
 end
 
+-- A box the player is typing in keeps its text until it loses focus.
+local function SetEditText(backdrop, value)
+    local editBox = backdrop and backdrop:GetNamedChild("Box")
+    if not editBox then return end
+    if not editBox.numericInput then
+        editBox:SetTextType(TEXT_TYPE_NUMERIC_UNSIGNED_INT)
+        editBox:SetMaxInputChars(9)
+        editBox.numericInput = true
+    end
+    if not editBox:HasFocus() then editBox:SetText(tostring(value)) end
+end
+
+local function RefreshBuyListUI()
+    local view = TP.window:GetNamedChild("BuyListView")
+    if not view then return end
+    local keys = TP.GetBuyListKeys()
+
+    TP.buyListEntryCount = #keys
+    local maxOffset = math.max(0, #keys - BUY_LIST_VISIBLE_ROWS)
+    TP.buyListScrollOffset = zo_clamp(TP.buyListScrollOffset or 0, 0, maxOffset)
+    RefreshGridScrollbar(view:GetNamedChild("Scrollbar"), #keys, BUY_LIST_VISIBLE_ROWS, TP.buyListScrollOffset,
+        "settingBuyListScroll")
+
+    local header = view:GetNamedChild("Header")
+    header:GetNamedChild("Item"):SetText(TP.T("ledgerItem"))
+    header:GetNamedChild("Price"):SetText(TP.T("buyListMaxPrice"))
+    header:GetNamedChild("Quantity"):SetText(TP.T("buyListQuantity"))
+    header:GetNamedChild("Bought"):SetText(TP.T("buyListBought"))
+    header:GetNamedChild("Remaining"):SetText(TP.T("buyListRemaining"))
+
+    local rows = view:GetNamedChild("Rows")
+    for index = 1, BUY_LIST_VISIBLE_ROWS do
+        local row = rows:GetNamedChild("Row" .. index)
+        local itemKey = keys[TP.buyListScrollOffset + index]
+        local entry = TP.GetBuyListEntry(itemKey)
+        row:SetHidden(entry == nil)
+        row.itemKey = entry and itemKey or nil
+        row.itemLink = entry and entry.link or nil
+        if entry then
+            local itemIcon = row:GetNamedChild("Icon")
+            itemIcon:SetHidden(not entry.icon or entry.icon == "")
+            if entry.icon and entry.icon ~= "" then itemIcon:SetTexture(entry.icon) end
+            local itemLabel = row:GetNamedChild("Item")
+            itemLabel:SetText(entry.link)
+            local r, g, b = TP.GetGroupItemColor(entry.link)
+            itemLabel:SetColor(r, g, b, 1)
+            SetEditText(row:GetNamedChild("Price"), entry.maxPrice)
+            SetEditText(row:GetNamedChild("Quantity"), entry.quantity)
+            row:GetNamedChild("Bought"):SetText(ZO_CommaDelimitNumber(TP.GetBuyListBought(itemKey)))
+            local remaining = TP.GetBuyListRemaining(itemKey)
+            local remainingLabel = row:GetNamedChild("Remaining")
+            remainingLabel:SetText(ZO_CommaDelimitNumber(remaining))
+            if remaining > 0 then
+                remainingLabel:SetColor(0.49, 0.85, 0.54, 1)
+            else
+                remainingLabel:SetColor(0.47, 0.49, 0.53, 1)
+            end
+        end
+    end
+
+    view:GetNamedChild("Empty"):SetText(TP.T("buyListEmpty"))
+    view:GetNamedChild("Empty"):SetHidden(#keys > 0)
+    view:GetNamedChild("Hint"):SetText(TP.T("buyListHint"))
+end
+
 local function RefreshItemUI(selected)
     local view = TP.window:GetNamedChild("ItemView")
     if not view then return end
@@ -3103,6 +3224,7 @@ function TP.RefreshUI()
     SetLabelText("TitleBarWeeklyAnalyticsTab", TP.T("tabWeeklyAnalytics"))
     SetLabelText("TitleBarStockTab", TP.T("tabStock"))
     SetLabelText("TitleBarItemTab", TP.T("tabItem"))
+    SetLabelText("TitleBarBuyListTab", TP.T("tabBuyList"))
     SetViewVisibility()
 
     if TP.activeView == "ledger" then
@@ -3119,6 +3241,9 @@ function TP.RefreshUI()
         return
     elseif TP.activeView == "stock" then
         RefreshStockUI()
+        return
+    elseif TP.activeView == "buyList" then
+        RefreshBuyListUI()
         return
     elseif TP.activeView == "item" then
         RefreshItemUI(selected)
@@ -3404,6 +3529,7 @@ function TP.RecordSubmittedPurchase()
         InvalidatePersonalActivity("purchase")
     end
     InvalidateItemSummary((existing or purchase).itemKey)
+    TP.OnBuyListPurchaseChanged((existing or purchase).itemKey)
     TP.currentPurchaseKey = key
     TP.RefreshUI()
     RequestPrioritySave()
@@ -3417,6 +3543,7 @@ function TP.UpdateCurrentPurchase(status)
     purchase.resolvedAt = GetTimeStamp()
     InvalidatePersonalActivity("purchase")
     InvalidateItemSummary(purchase.itemKey)
+    TP.OnBuyListPurchaseChanged(purchase.itemKey)
     if status == "confirmed" or status == "failed" then
         TP.currentPurchaseKey = nil
     end
@@ -3456,6 +3583,7 @@ function TP.OnAGSPurchase(itemData, succeeded)
     end
     InvalidatePersonalActivity("purchase")
     InvalidateItemSummary((existing or purchase).itemKey)
+    TP.OnBuyListPurchaseChanged((existing or purchase).itemKey)
     if TP.currentPurchaseKey == key then TP.currentPurchaseKey = nil end
     TP.RefreshUI()
     RequestPrioritySave()
@@ -4382,6 +4510,14 @@ local function AddTrackMenuItem(itemLink)
         if TP.window then TP.window:SetHidden(false) end
     end)
 
+    if not TP.GetBuyListEntry(itemKey) then
+        AddCustomMenuItem(TP.T("menuAddBuyList"), function()
+            if not TP.AddToBuyList(itemLink) then return end
+            TP.SetView("buyList")
+            if TP.window then TP.window:SetHidden(false) end
+        end)
+    end
+
     if not isTracked then
         AddCustomMenuItem(TP.T("menuShowGuildSales"), function()
             local itemName = zo_strformat(SI_TOOLTIP_ITEM_NAME, GetItemLinkName(itemLink))
@@ -4489,6 +4625,7 @@ local function OnAddOnLoaded(_, addonName)
     TP.SV.purchases = SanitizeSavedTransactions(TP.SV.purchases)
     TP.SV.sales = SanitizeSavedTransactions(TP.SV.sales)
     TP.SV.listings = SanitizeSavedListings(TP.SV.listings)
+    TP.SanitizeBuyList()
     TP.SV.listingSequence = math.max(0, math.floor(tonumber(TP.SV.listingSequence) or 0))
     local salesSyncTimeByGuild = {}
     for guildId, timestamp in pairs(TP.SV.salesSyncTimeByGuild or {}) do

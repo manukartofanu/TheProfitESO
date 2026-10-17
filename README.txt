@@ -46,6 +46,8 @@ Usage
 * Right-click an item or item link and choose "Track in The Profit".
 * For an untracked item, choose "Show Sales in My Guilds" to open All Deals
   filtered by that item's name without adding it to the portfolio.
+* Choose "Add to Buy List" to buy an item at your own price, without the
+  portfolio's market model. See Buy List below.
 * Use /theprofit to open or close the ledger.
 * Track up to ten items and switch the active item by clicking its table row.
 * The add-on settings can open the ledger automatically with mail or guild stores.
@@ -65,6 +67,25 @@ be removed without notice.
 Purchases are recorded when they are submitted through ESO's guild store,
 including purchases made through AwesomeGuildStore when it is installed.
 
+Buy List
+--------
+
+The Buy List holds up to twenty items you want to buy at a price and in a
+quantity you set yourself. It is meant for buying, not for portfolio profit:
+Portfolio, Ledger, and Stock ignore it, and its purchases appear in My Deals like
+any other. An item can be in the portfolio and on the Buy List at the same time.
+
+Each row shows the item, the maximum price per piece, the quantity to buy, how
+many were bought, and how many are left. Price and quantity are edited in the
+row and saved when the field loses focus. A price of 0 uses the TTC suggested
+price, and without it the portfolio's buy price; with neither, the item has no
+price and is not searched for.
+
+Bought counts recorded purchases made after the item was added; a rejected
+purchase does not count. When nothing is left to buy, the item is no longer
+searched for but stays on the list until you remove it. While some is left, the
+Buy List price replaces the portfolio's model for that item.
+
 AwesomeGuildStore filters
 -------------------------
 
@@ -80,21 +101,28 @@ discounts with minimum absolute-profit thresholds, accepts a 25% return only
 when the TTC price has enough supporting sales, and marks a tracked item as DEAL
 when The Profit's market model considers it ready to purchase. That model uses
 recent LibHistoire sales, liquidity, current tracked stock, price trend, and
-volatility. Listings without enough data remain in Other.
+volatility. A Buy List item with quantity left is marked BUY in the same yellow
+category when the unit price is within its Buy List price and the stack is no
+larger than what is left to buy. Listings without enough data remain in Other.
 
 Group deal sharing
 ------------------
 
 Group sharing is disabled by default. Install LibGroupBroadcast, then enable
 "Share tracked items with group" under Settings > Addons > The Profit > Group.
-Group members running The Profit exchange the identities of their tracked items
-and the highest unit prices their market models currently consider safe buys.
+Group members running The Profit exchange the identities of the items they want
+and the highest unit prices they would pay: Buy List items that still have
+quantity left at their Buy List price, and portfolio items at the price their
+market models currently consider a safe buy. An item in both is shared once with
+the Buy List price. Up to 30 items are shared; members running 1.1.2 or earlier
+do not exchange lists with newer versions.
 
 When AwesomeGuildStore receives search results, The Profit checks only those
 results for lots wanted by another active group member. It never starts guild-
 store searches itself. Matching deals are sent when the store is closed, except
 for lots bought by the reporting player. The recipient evaluates the complete
-stack with their own current model before accepting and displaying the report.
+stack with their own Buy List price or current model before accepting and
+displaying the report.
 
 Accepted reports appear as a temporary HUD alert. An optional Group deals window
 can also be shown beside ESO's group window. Reports expire after thirty minutes,
