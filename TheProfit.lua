@@ -1709,6 +1709,7 @@ local function GetLedgerEntries()
                         totals.cost = totals.cost + quantity * purchase.unitPrice
                         result[#result + 1] = {
                             id = purchase.id .. ":" .. sale.id,
+                            lotId = purchase.id,
                             itemLink = purchase.itemLink,
                             itemName = purchase.itemName,
                             purchaseTimestamp = purchase.timestamp,
@@ -1729,6 +1730,7 @@ local function GetLedgerEntries()
                 if purchase.remaining > 0 then
                     result[#result + 1] = {
                         id = purchase.id .. ":open",
+                        lotId = purchase.id,
                         itemLink = purchase.itemLink,
                         itemName = purchase.itemName,
                         purchaseTimestamp = purchase.timestamp,
@@ -1740,10 +1742,13 @@ local function GetLedgerEntries()
         end
     end
 
+    -- Newest purchases first, and the rows of one lot together. Within a lot the unsold
+    -- remainder comes first, then its sales newest first.
     table.sort(result, function(a, b)
         if a.purchaseTimestamp ~= b.purchaseTimestamp then return a.purchaseTimestamp > b.purchaseTimestamp end
-        local aSale = tonumber(a.saleTimestamp) or 0
-        local bSale = tonumber(b.saleTimestamp) or 0
+        if a.lotId ~= b.lotId then return tostring(a.lotId) > tostring(b.lotId) end
+        local aSale = tonumber(a.saleTimestamp) or math.huge
+        local bSale = tonumber(b.saleTimestamp) or math.huge
         if aSale ~= bSale then return aSale > bSale end
         return tostring(a.id) > tostring(b.id)
     end)
