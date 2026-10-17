@@ -124,6 +124,7 @@ end
 
 TP.SimpleMargin.Evaluate = Evaluate
 TP.SimpleMargin.GetPriceInfo = GetPriceInfo
+TP.SimpleMargin.IsPriceTableStale = IsPriceTableStale
 TP.SimpleMargin.GetCategoryColor = GetCategoryColor
 TP.SimpleMargin.CATEGORY_ORDER = CATEGORY_ORDER
 TP.SimpleMargin.CATEGORY_LABELS = CATEGORY_LABELS
@@ -153,10 +154,20 @@ local function UpdateTextControl(rowControl, itemData)
     -- Looked up on each call: the Proficient type replaces the evaluation.
     local category, percent, label = TP.SimpleMargin.Evaluate(itemData)
     if not category then
-        text:SetHidden(true)
+        -- With an outdated TTC table every row is empty and filters as gray; the hint
+        -- says why. Its text is longer than a percentage, so the label sizes to it.
+        if priceTableStale then
+            text:SetWidth(0)
+            text:SetText(TP.T("ttcOldHint"))
+            text:SetColor(unpack(GRAY_COLOR))
+            text:SetHidden(false)
+        else
+            text:SetHidden(true)
+        end
         return
     end
 
+    text:SetWidth(TEXT_WIDTH)
     text:SetText(percent and string.format("%d%%", zo_round(percent)) or label or "DEAL")
     text:SetColor(GetCategoryColor(category))
     text:SetHidden(false)

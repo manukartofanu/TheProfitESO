@@ -483,6 +483,7 @@
                             </Controls>
                         </Control>
                         <Button name="$(parent)Remove" inherits="ZO_DefaultButton"><Dimensions x="220" y="30" /><Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-8" offsetY="-24" /><OnClicked>TheProfit.RemoveSelectedItem()</OnClicked></Button>
+                        <Label name="$(parent)TTCWarning" font="ZoFontGameSmall" color="F25952" verticalAlignment="CENTER" hidden="true"><Dimensions x="410" y="40" /><Anchor point="RIGHT" relativeTo="$(parent)Remove" relativePoint="LEFT" offsetX="-12" /></Label>
                     </Controls>
                 </Control>
 

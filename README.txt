@@ -105,6 +105,11 @@ volatility. A Buy List item with quantity left is marked BUY in the same yellow
 category when the unit price is within its Buy List price and the stack is no
 larger than what is left to buy. Listings without enough data remain in Other.
 
+When the TTC price table is more than three days old, TTC prices are not used:
+every result row shows a gray "TTC old" hint instead of a percentage and filters
+as Other, and the Portfolio view shows a red reminder next to the Stop Tracking
+button to update prices with the TTC client.
+
 Group deal sharing
 ------------------
 

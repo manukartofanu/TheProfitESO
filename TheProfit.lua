@@ -236,6 +236,8 @@ local strings = {
         help2 = "/theprofit — open or close the ledger",
         help3 = "/theprofit track [item link] — select an item",
         ttcPriceTableStale = "The TTC price table is more than 3 days old, so TTC-based estimates are hidden. Update it with the TTC client and reload the UI.",
+        ttcOldHint = "TTC old",
+        ttcPortfolioWarning = "TTC prices are outdated. Update them with the TTC client, otherwise the guild store filter does not work.",
         missingLink = "Add an item link after /theprofit track",
         removeItem = "Stop Tracking in The Profit",
         portfolioFull = "The portfolio already contains 10 items. Remove one before adding another.",
@@ -370,6 +372,8 @@ local strings = {
         help2 = "/theprofit — открыть или закрыть окно",
         help3 = "/theprofit track [ссылка на предмет] — выбрать предмет",
         ttcPriceTableStale = "Таблица цен TTC старше 3 дней, поэтому оценки по TTC скрыты. Обновите её через клиент TTC и перезагрузите интерфейс.",
+        ttcOldHint = "TTC устар.",
+        ttcPortfolioWarning = "Цены TTC устарели. Обновите их клиентом TTC, иначе фильтр в магазине не работает.",
         missingLink = "Добавьте ссылку на предмет после /theprofit track",
         removeItem = "Прекратить отслеживание в The Profit",
         portfolioFull = "В портфеле уже 10 позиций. Уберите одну перед добавлением новой.",
@@ -3384,6 +3388,12 @@ function TP.RefreshUI()
     SetLabelText("OverallRemove", TP.T("removeItem"))
     local removeButton = TP.window:GetNamedChild("OverallRemove")
     if removeButton then removeButton:SetEnabled(selected ~= nil) end
+    local ttcWarning = TP.window:GetNamedChild("OverallTTCWarning")
+    if ttcWarning then
+        local isStale = TP.SimpleMargin and TP.SimpleMargin.IsPriceTableStale and TP.SimpleMargin.IsPriceTableStale()
+        ttcWarning:SetText(TP.T("ttcPortfolioWarning"))
+        ttcWarning:SetHidden(not isStale)
+    end
     RefreshOverallUI(selected, summary)
 end
 
