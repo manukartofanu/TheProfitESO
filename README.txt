@@ -217,8 +217,11 @@ button below the cards.
 
 Ledger presents recorded purchases for the currently tracked items newest-first
 and allocates personal sales to purchase lots using FIFO. Partial matches are
-shown separately, while an unsold remainder has no corresponding sale. Item
-links retain their hover and link actions. The view keeps sixteen rows visible
+shown separately, while an unsold remainder has no corresponding sale and is
+listed above the sold part of its lot. Purchases of the same item at the same
+unit price made one right after another, with no other purchase in between, are
+shown as one lot with the quantities added up; it is split only where its pieces
+went to different sales. Item links retain their hover and link actions. The view keeps sixteen rows visible
 and scrolls through older records. The line below them shows the calculation for
 the sold part only: sales revenue minus listing fees and trading-house cut minus
 the purchase cost of the pieces sold, giving the realized profit. Unsold stock is

@@ -1635,6 +1635,40 @@ local function GetRecentMarketSales(itemKey, guildIdFilter)
     return result
 end
 
+-- Purchases made one right after another, of the same item at the same unit price with
+-- no other purchase in between, form a run that the Ledger shows as one lot. Returns
+-- the run of each purchase key and the time of each run's newest purchase.
+local function GetPurchaseRuns(purchasesByItem)
+    local purchases = {}
+    for itemKey, bucket in pairs(purchasesByItem) do
+        for purchaseKey, purchase in pairs(bucket) do
+            local quantity = tonumber(purchase.quantity) or 0
+            if purchase.status ~= "failed" and quantity > 0 then
+                purchases[#purchases + 1] = {
+                    key = purchaseKey,
+                    itemKey = itemKey,
+                    timestamp = tonumber(purchase.timestamp) or 0,
+                    unitPrice = (tonumber(purchase.price) or 0) / quantity,
+                    sortKey = purchase.id or purchaseKey,
+                }
+            end
+        end
+    end
+    table.sort(purchases, SortOldestTransactionFirst)
+
+    local runs, runTimes, previous = {}, {}, nil
+    for _, purchase in ipairs(purchases) do
+        local run = tostring(purchase.sortKey)
+        if previous and previous.itemKey == purchase.itemKey and previous.unitPrice == purchase.unitPrice then
+            run = runs[previous.key]
+        end
+        runs[purchase.key] = run
+        runTimes[run] = purchase.timestamp
+        previous = purchase
+    end
+    return runs, runTimes
+end
+
 -- Also returns the totals of the matched part only: sales revenue, their listing fees
 -- and trading-house cut, and the purchase cost of the pieces sold. Unsold remainders
 -- add nothing to them.
@@ -1643,6 +1677,20 @@ local function GetLedgerEntries()
     local totals = { sold = 0, fees = 0, cost = 0 }
     local purchasesByItem = TP.runtime and TP.runtime.purchasesByItem or {}
     local salesByItem = TP.runtime and TP.runtime.salesByItem or {}
+    local runs, runTimes = GetPurchaseRuns(purchasesByItem)
+
+    -- Rows of one run that went to the same sale, or are both unsold, become one row.
+    local rowsByGroup = {}
+    local function AddRow(group, row)
+        local existing = rowsByGroup[group]
+        if not existing then
+            rowsByGroup[group] = row
+            result[#result + 1] = row
+            return
+        end
+        existing.purchaseQuantity = existing.purchaseQuantity + row.purchaseQuantity
+        if row.saleQuantity then existing.saleQuantity = existing.saleQuantity + row.saleQuantity end
+    end
 
     for itemKey, purchaseBucket in pairs(purchasesByItem) do
         if IsTrackedKey(itemKey) then
@@ -1659,8 +1707,11 @@ local function GetLedgerEntries()
                     if (not itemName or itemName == "") and itemLink then
                         itemName = zo_strformat(SI_TOOLTIP_ITEM_NAME, GetItemLinkName(itemLink))
                     end
+                    local run = runs[purchaseKey] or tostring(purchase.id or purchaseKey)
                     purchaseLots[#purchaseLots + 1] = {
                         id = tostring(purchase.id or purchaseKey),
+                        run = run,
+                        runTimestamp = runTimes[run] or tonumber(purchase.timestamp) or 0,
                         timestamp = tonumber(purchase.timestamp) or 0,
                         quantity = quantity,
                         remaining = quantity,
@@ -1707,18 +1758,18 @@ local function GetLedgerEntries()
                         totals.sold = totals.sold + quantity * sale.unitPrice
                         totals.fees = totals.fees + quantity * sale.unitFees
                         totals.cost = totals.cost + quantity * purchase.unitPrice
-                        result[#result + 1] = {
-                            id = purchase.id .. ":" .. sale.id,
-                            lotId = purchase.id,
+                        AddRow(purchase.run .. ":" .. sale.id, {
+                            id = purchase.run .. ":" .. sale.id,
+                            lotId = purchase.run,
                             itemLink = purchase.itemLink,
                             itemName = purchase.itemName,
-                            purchaseTimestamp = purchase.timestamp,
+                            purchaseTimestamp = purchase.runTimestamp,
                             purchaseQuantity = quantity,
                             purchaseUnitPrice = purchase.unitPrice,
                             saleTimestamp = sale.timestamp,
                             saleQuantity = quantity,
                             saleUnitPrice = sale.unitPrice,
-                        }
+                        })
                         sale.remaining = sale.remaining - quantity
                         purchase.remaining = purchase.remaining - quantity
                         if purchase.remaining <= 0 then purchaseIndex = purchaseIndex + 1 end
@@ -1728,22 +1779,22 @@ local function GetLedgerEntries()
 
             for _, purchase in ipairs(purchaseLots) do
                 if purchase.remaining > 0 then
-                    result[#result + 1] = {
-                        id = purchase.id .. ":open",
-                        lotId = purchase.id,
+                    AddRow(purchase.run .. ":open", {
+                        id = purchase.run .. ":open",
+                        lotId = purchase.run,
                         itemLink = purchase.itemLink,
                         itemName = purchase.itemName,
-                        purchaseTimestamp = purchase.timestamp,
+                        purchaseTimestamp = purchase.runTimestamp,
                         purchaseQuantity = purchase.remaining,
                         purchaseUnitPrice = purchase.unitPrice,
-                    }
+                    })
                 end
             end
         end
     end
 
-    -- Newest purchases first, and the rows of one lot together. Within a lot the unsold
-    -- remainder comes first, then its sales newest first.
+    -- Newest purchases first, and the rows of one lot (run) together. Within a lot the
+    -- unsold remainder comes first, then its sales newest first.
     table.sort(result, function(a, b)
         if a.purchaseTimestamp ~= b.purchaseTimestamp then return a.purchaseTimestamp > b.purchaseTimestamp end
         if a.lotId ~= b.lotId then return tostring(a.lotId) > tostring(b.lotId) end
