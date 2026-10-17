@@ -5,16 +5,16 @@ A lightweight personal trade ledger for The Elder Scrolls Online.
 
 This Add-on is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates. The Elder Scrolls(R) and related logos are registered trademarks or trademarks of ZeniMax Media Inc. in the United States and/or other countries. All rights reserved.
 
-Version 1.1.2
+Version 1.2.0
 -------------
 
-* Items are now identified by item id alone, so links from chat, the craft bag,
-  the backpack, and guild store lots all match the same tracked item. Tracked
-  variants of one id are merged when the addon loads. See Known limitations.
-* An item removed from the portfolio and added again starts from a clean slate:
-  earlier purchases stay in My Deals but no longer count toward its stock or profit.
-* Group deal sharing does not match items with group members running earlier
-  versions of the addon.
+* Buy List: buy items at your own price and in your own quantity, without the
+  portfolio's market model. Open it with the window's Settings (gear) button.
+* Group deal sharing also shares Buy List items. It does not exchange lists with
+  group members running 1.1.2 or earlier.
+* When the TTC price table is more than three days old, TTC prices are no longer
+  used until it is updated.
+* Ledger shows the realized profit of the sold part of tracked purchases.
 
 License
 -------
@@ -59,6 +59,7 @@ Usage
   through LibHistoire. Portfolio, Price, Stock, Ledger, My Deals, All Deals,
   and Stats views separate comparison, market history, stock control, accounting,
   personal history, guild history, and weekly reporting workflows.
+* The window's Settings (gear) button opens the Buy List and Group Sharing tabs.
 
 The Profit does not provide a supported public API. Functions and data available
 through the global TheProfit table are implementation details and may change or
@@ -70,16 +71,18 @@ including purchases made through AwesomeGuildStore when it is installed.
 Buy List
 --------
 
-The Buy List holds up to twenty items you want to buy at a price and in a
-quantity you set yourself. It is meant for buying, not for portfolio profit:
-Portfolio, Ledger, and Stock ignore it, and its purchases appear in My Deals like
-any other. An item can be in the portfolio and on the Buy List at the same time.
+The Buy List is a tab under the window's Settings (gear) button. It holds up to
+twenty items you want to buy at a price and in a quantity you set yourself. It
+is meant for buying, not for portfolio profit: Portfolio, Ledger, and Stock
+ignore it, and its purchases appear in My Deals like any other. An item can be
+in the portfolio and on the Buy List at the same time.
 
 Each row shows the item, the maximum price per piece, the quantity to buy, how
 many were bought, and how many are left. Price and quantity are edited in the
 row and saved when the field loses focus. A price of 0 uses the TTC suggested
 price, and without it the portfolio's buy price; with neither, the item has no
-price and is not searched for.
+price and is not searched for. While the TTC price table is outdated (see
+below), there is no TTC suggested price.
 
 Bought counts recorded purchases made after the item was added; a rejected
 purchase does not count. When nothing is left to buy, the item is no longer
@@ -105,10 +108,12 @@ volatility. A Buy List item with quantity left is marked BUY in the same yellow
 category when the unit price is within its Buy List price and the stack is no
 larger than what is left to buy. Listings without enough data remain in Other.
 
-When the TTC price table is more than three days old, TTC prices are not used:
-every result row shows a gray "TTC old" hint instead of a percentage and filters
-as Other, and the Portfolio view shows a red reminder next to the Stop Tracking
-button to update prices with the TTC client.
+When the TTC price table is more than three days old, TTC prices are not used.
+A row that would need them shows a gray "TTC old" hint instead of a percentage
+and filters as Other; in Proficient, DEAL and BUY rows do not depend on TTC and
+stay yellow. The first guild store visit of the session also prints a chat
+reminder, and the Portfolio view shows a red one next to the Stop Tracking
+button, to update prices with the TTC client.
 
 Group deal sharing
 ------------------
@@ -221,11 +226,11 @@ shown separately, while an unsold remainder has no corresponding sale and is
 listed above the sold part of its lot. Purchases of the same item at the same
 unit price made one right after another, with no other purchase in between, are
 shown as one lot with the quantities added up; it is split only where its pieces
-went to different sales. Item links retain their hover and link actions. The view keeps sixteen rows visible
-and scrolls through older records. The line below them shows the calculation for
-the sold part only: sales revenue minus listing fees and trading-house cut minus
-the purchase cost of the pieces sold, giving the realized profit. Unsold stock is
-left out.
+went to different sales. Item links retain their hover and link actions. The
+view keeps sixteen rows visible and scrolls through older records. The line
+below them shows the calculation for the sold part only: sales revenue minus
+listing fees and trading-house cut minus the purchase cost of the pieces sold,
+giving the realized profit. Unsold stock is left out.
 
 My Deals is a chronological, non-FIFO journal of personal trading. Purchases and
 sales have separate in-view tabs and can be filtered by ESO trading week. Each
